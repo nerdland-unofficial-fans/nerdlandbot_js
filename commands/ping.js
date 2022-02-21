@@ -1,8 +1,10 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
 module.exports = {
-  pingPrefix: async function pingPrefix (message) {
-    message.channel.send('pong')
-  },
-  pingSlash: async function pingSlash (interaction) {
-    interaction.reply('pong')
+  data: new SlashCommandBuilder()
+    .setName('ping')
+    .setDescription('Replies with Pong!'),
+   async execute(interaction) {
+    interaction.reply({content:'pong', allowedMentions: { repliedUser: false }});
   }
 }

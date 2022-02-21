@@ -1,10 +1,11 @@
 
 // Import relevant classes from discord.js
-const { Client, Intents } = require('discord.js')
+const fs = require('fs');
+const { Client, Intents, Collection } = require('discord.js')
 const { REST } = require('@discordjs/rest')
 const { Routes } = require('discord-api-types/v9')
 // Import commands
-const { pingPrefix, pingSlash } = require('./commands/ping')
+const { pingPrefix } = require('./commands/ping')
 
 // Setup our environment variables via dotenv
 require('dotenv').config()
@@ -27,16 +28,20 @@ if (CLIENT_ID) {
 
 const rest = new REST({ version: '9' }).setToken(DISCORD_TOKEN)
 
-const commands = [{
-  name: 'ping',
-  description: 'Replies with Pong!'
-}]
-
 // Instantiate a new client with some necessary parameters.
 const client = new Client(
   { intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] }
 );
-
+// Load commands
+const commands = [];
+client.commands = new Collection();
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+for (const file of commandFiles) {
+	const command = require(`./commands/${file}`);
+	commands.push(command.data.toJSON());
+  client.commands.set(command.data.name, command)
+}
+// Register commands
 (async () => {
   try {
     console.log('Started refreshing application (/) commands!')
@@ -61,7 +66,7 @@ client.on('messageCreate', (message) => {
   if (!message.author.bot && message.content.startsWith(PREFIX)) {
     const messageParts = message.content.substring(PREFIX.length).split(' ')
     const command = messageParts[0].toLowerCase()
-    processCommandPrefix(message, command)
+    processCommand(message, command)
   }
 })
 
@@ -70,21 +75,20 @@ client.on('interactionCreate', async interaction => {
     return
   }
   const { commandName } = interaction
-  await processCommandSlash(interaction, commandName)
+  await processCommand(interaction, commandName)
 })
 
-function processCommandPrefix (message, command) {
-  switch (command) {
-    case 'ping':
-      pingPrefix(message)
-      break
-  }
-}
-async function processCommandSlash (interaction, commandName) {
-  switch (commandName) {
-    case 'ping':
-      await pingSlash(interaction)
-      break
+async function processCommand (interaction, commandName) {
+  // interaction can be an interaction and a message
+  const command = client.commands.get(commandName);
+  
+	if (!command) return;
+
+  try {
+    await command.execute(interaction);
+  } catch (error) {
+    console.error(error);
+    await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
   }
 }
 // Authenticate
