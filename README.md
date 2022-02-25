@@ -42,6 +42,10 @@ DISCORD_TOKEN = <bot token>
 PREFIX = <bot prefix>
 CLIENT_ID = <user id for the bot>
 
+# Running the bot
+- npm install
+- node nerdlandbot.js
+
 # Links
 * [Nerdland website](https://nerdland.be)
 * [Nerdland merch](https://www.mistert.be/nerdland)
