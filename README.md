@@ -46,6 +46,29 @@ CLIENT_ID = <user id for the bot>
 - npm install
 - node nerdlandbot.js
 
+# Code Style
+[![JavaScript Style Guide](https://cdn.rawgit.com/standard/standard/master/badge.svg)](https://github.com/standard/standard)
+
+This project uses JavaScript Standard Style.
+In order to make sure your code is compliant before comitting you can run the following commands
+
+```
+// if standard is not yet installed, run this first
+npm i -g standard
+
+// run the code analysis
+npm test
+
+// if the analysis finds issues, most can be solved automatically
+standard --fix
+```
+
+The analysis is run automatically for each branch on the origin, and for each pull request to 'main' or 'develop'.
+
+Failing the standardjs analysis will prevent a branch from being merged.
+
+
+
 # Links
 * [Nerdland website](https://nerdland.be)
 * [Nerdland merch](https://www.mistert.be/nerdland)
