@@ -66,33 +66,31 @@ client.on('ready', function (e) {
 })
 
 client.on('messageCreate', (message) => {
-  if (!message.author.bot && message.content.startsWith(PREFIX)) {
-    const messageParts = message.content.substring(PREFIX.length).split(' ')
-    const command = messageParts[0].toLowerCase()
-    processCommand(message, command)
+  if (!message.author.bot && message.content.startsWith(PREFIX) && message.content.substring(PREFIX.length) === 'help') {
+    const replyText = 'Hallo!\n' +
+      'Het bot team is enthousiast om mee te delen dat we een stevige update hebben doorgevoerd!\n' +
+      'Vanaf nu gebruikt onze bot niet langer de verouderde text commands, maar zijn we overgeschakeld op de in discord geintegreerde slash commands.\n' +
+      'Je kan deze gebruiken door te beginnen met een / te typen (zoals bij giphy), en discord zal dan automatisch aanvullen met de beschikbare opties.\n' +
+      'Indien je een overzichtje wilt van enkel de opties van de nerdlandbot, kan je alvast `/help` gebruiken!'
+
+    message.reply(replyText)
   }
 })
 
 client.on('interactionCreate', async interaction => {
-  if (!interaction.isCommand()) {
-    return
-  }
-  const { commandName } = interaction
-  await processCommand(interaction, commandName)
-})
+  if (!interaction.isCommand()) return
 
-async function processCommand (interaction, commandName) {
-  // interaction can be an interaction and a message
-  const command = client.commands.get(commandName)
-
+  const command = client.commands.get(interaction.commandName)
   if (!command) return
 
   try {
     await command.execute(interaction)
   } catch (error) {
     log.error(error)
-    await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true })
+    // TODO hier moet nog een functiecall komen zodra we de foemp vervriendelijken in het weekend of voor bepaalde kanalen
+    await interaction.reply({ content: 'Da kennek nie foemp!', ephemeral: true })
   }
-}
+})
+
 // Authenticate
 client.login(process.env.DISCORD_TOKEN)
