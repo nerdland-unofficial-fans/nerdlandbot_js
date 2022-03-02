@@ -66,11 +66,11 @@ client.on('ready', function (e) {
 })
 
 client.on('messageCreate', (message) => {
-  if (!message.author.bot && message.content.startsWith(PREFIX) && message.content.substring(PREFIX.length) === 'help') {
+  if (!message.author.bot && message.content.startsWith(PREFIX)) {
     const replyText = 'Hallo!\n' +
       'Het bot team is enthousiast om mee te delen dat we een stevige update hebben doorgevoerd!\n' +
       'Vanaf nu gebruikt onze bot niet langer de verouderde text commands, maar zijn we overgeschakeld op de in discord geintegreerde slash commands.\n' +
-      'Je kan deze gebruiken door te beginnen met een / te typen (zoals bij giphy), en discord zal dan automatisch aanvullen met de beschikbare opties.\n' +
+      'Je kan deze gebruiken door te beginnen met een / te typen, en discord zal dan automatisch aanvullen met de beschikbare opties.\n' +
       'Indien je een overzichtje wilt van enkel de opties van de nerdlandbot, kan je alvast `/help` gebruiken!'
 
     message.reply(replyText)
