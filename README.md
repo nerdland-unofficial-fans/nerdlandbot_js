@@ -38,9 +38,13 @@ Alternatively, you will need to acquire a `DISCORD_TOKEN`. It is possible to obt
 # Create your .env file
 You need a file to keep your bot token safely. You'll do this by creating a file with name ".env" which must contain following lines:
 In the .env file there should be:
-DISCORD_TOKEN = <bot token>
-PREFIX = <bot prefix>
-CLIENT_ID = <user id for the bot>
+
+- DISCORD_TOKEN = "bot token"
+- PREFIX = "bot prefix"
+- CLIENT_ID = "user id for the bot"
+- GUILD_ID = "The id for your test-server"
+
+Important note: The GUILD_ID limits your instance of the bot to your server, but makes sure commands are updated instantly instead of using discords hourly cache. This property should be omitted for production builds!
 
 # Running the bot
 - npm install
