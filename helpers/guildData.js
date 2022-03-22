@@ -1,5 +1,5 @@
 // imports
-const fs = require('fs')
+const fs = require('fs').promises
 const path = require('path')
 const { readJson, writeJson } = require('./jsonStore')
 const constants = require('./constants')
@@ -9,7 +9,13 @@ const configFolder = constants.GUILD_DATA
 const configCache = {}
 
 // create configs folder if it does not exist
-if (!fs.existsSync(configFolder)) { fs.mkdirSync(configFolder) }
+;(async () => {
+  await fs.mkdir(configFolder).catch(err => {
+    if (err.code !== 'EEXIST') {
+      throw err
+    }
+  })
+})()
 
 // get path to config file for given guildID
 function getConfigFilePath (guildId) {
@@ -17,41 +23,43 @@ function getConfigFilePath (guildId) {
 }
 
 async function getGuild (guildId) {
-  if (guildId in configCache) { return configCache[guildId] }
+  if (configCache[guildId]) { return configCache[guildId] }
 
   const filepath = getConfigFilePath(guildId)
 
-  let config = {}
-  if (fs.existsSync(filepath)) { config = await parseFile(filepath) } else { config = createGuild(guildId) }
+  let guildData
+  try {
+    guildData = await parseGuildFile(filepath)
+  } catch (err) {
+    // ENOENT = file does not exist
+    if (err.code !== 'ENOENT') {
+      throw err
+    }
+    guildData = createGuild(guildId)
+  }
 
-  configCache[guildId] = config
-  return config
+  configCache[guildId] = guildData
+  return guildData
 }
 
-async function saveGuild (guild) {
-  await writeJson(guild, getConfigFilePath(guild.guildId))
+async function saveGuild (guildData) {
+  await writeJson(guildData, getConfigFilePath(guildData.guildId))
 }
 
 function createGuild (guildId) {
-  const guild = new GuildData(guildId)
-  initGuild(guild)
-  return guild
+  const guildData = { guildId: guildId }
+  initGuild(guildData)
+  return guildData
 }
 
-async function parseFile (filepath) {
-  const guild = await readJson(filepath)
-  initGuild(guild)
-  return guild
+async function parseGuildFile (filepath) {
+  const guildData = await readJson(filepath)
+  initGuild(guildData)
+  return guildData
 }
 
 function initGuild (guild) {
   // initialize all guild properties here in case we use an old save that does not have them yet!
-}
-
-class GuildData {
-  constructor (guildId) {
-    this.guildId = guildId
-  }
 }
 
 module.exports = {
@@ -60,15 +68,15 @@ module.exports = {
   getAllGuilds: async function () {
     const guilds = []
 
-    const files = fs.readdirSync(configFolder)
+    const files = await fs.readdir(configFolder)
 
-    files.forEach(async function (file) {
+    for (const file of files) {
       const split = file.split('.')
       if (split[1] === 'json') {
-        const guild = await getGuild(parseInt(split[0]))
+        const guild = await getGuild(split[0])
         guilds.push(guild)
       }
-    })
+    }
     return guilds
   }
 }
