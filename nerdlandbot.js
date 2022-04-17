@@ -14,6 +14,7 @@ require('dotenv').config()
 const PREFIX = process.env.PREFIX
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN
 const CLIENT_ID = process.env.CLIENT_ID
+const GUILD_ID = process.env.GUILD_ID
 
 if (PREFIX) {
   log.info(`Start bot with prefix '${PREFIX}'.`)
@@ -49,10 +50,18 @@ for (const file of commandFiles) {
   try {
     log.info('Started refreshing application (/) commands!')
 
-    await rest.put(
-      Routes.applicationCommands(CLIENT_ID),
-      { body: commands }
-    )
+    // if a GUILD ID for a test server is defined, we should use the applicationGuildCommands routes as it updates the commands instantly
+    if (GUILD_ID === undefined) {
+      await rest.put(
+        Routes.applicationCommands(CLIENT_ID),
+        { body: commands }
+      )
+    } else {
+      await rest.put(
+        Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
+        { body: commands }
+      )
+    }
 
     log.info('Successfully reloaded application (/) commands.')
   } catch (error) {
