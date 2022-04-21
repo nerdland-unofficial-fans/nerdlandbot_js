@@ -4,7 +4,7 @@ const { getGuild, saveGuild } = require('../helpers/guildData')
 const { foemp } = require('../helpers/foemp')
 const { BUTTON_STYLES, DEFAULT_TIMEOUT } = require('../helpers/constants')
 
-async function verifyAdmin (interaction) {
+async function verifyAdminAsync (interaction) {
   const user = interaction.member
   const guild = await getGuild(interaction.guildId)
 
@@ -12,7 +12,11 @@ async function verifyAdmin (interaction) {
   const isBotAdmin = guild.admins.includes(user.id)
 
   if (!isGuildAdmin && !isBotAdmin) {
-    await interaction.reply('https://gph.is/g/4w8PDNj')
+    if (interaction.isdeferred || interaction.replied) {
+      await interaction.editReply('https://gph.is/g/4w8PDNj')
+    } else {
+      await interaction.reply('https://gph.is/g/4w8PDNj')
+    }
     return false
   }
   return true
@@ -23,7 +27,7 @@ async function listAdmins (interaction) {
 
   // Check existence of admins
   if (guild.admins.length === 0) {
-    await interaction.reply('Er zijn nog geen bot admins aangeduid op deze server!')
+    await interaction.editReply('Er zijn nog geen bot admins aangeduid op deze server!')
     return
   }
 
@@ -32,19 +36,19 @@ async function listAdmins (interaction) {
   const admins = await memberManager.fetch({ user: guild.admins })
   let response = 'De bot admins voor deze server zijn:'
   for (const [, admin] of admins) { response += `\n${admin.user.username}` }
-  await interaction.reply(response)
+  await interaction.editReply(response)
 }
 
 async function addAdmin (interaction) {
   // Verify access level of user executing the command
-  if (!verifyAdmin(interaction)) { return }
+  if (!await verifyAdminAsync(interaction)) { return }
 
   const user = interaction.options.getUser('target')
   const guild = await getGuild(interaction.guildId)
 
   // Error if the target already is a bot admin
   if (guild.admins.includes(user.id)) {
-    await interaction.reply(`${user.username} is al een bot admin, ${foemp()}!`)
+    await interaction.editReply(`${user.username} is al een bot admin, ${foemp()}!`)
     return
   }
 
@@ -52,26 +56,26 @@ async function addAdmin (interaction) {
 
   // Error if the target already is a server admin
   if (member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
-    await interaction.reply(`${user.username} is al een server admin, het is niet nodig om hem/haar/helicopter ook bot admin te maken, ${foemp()}!`)
+    await interaction.editReply(`${user.username} is al een server admin, het is niet nodig om hem/haar/helicopter ook bot admin te maken, ${foemp()}!`)
     return
   }
 
   // Promote the target to bot admin
   guild.admins.push(user.id)
   saveGuild(guild)
-  await interaction.reply(`${user.username} is nu een bot admin.`)
+  await interaction.editReply(`${user.username} is nu een bot admin.`)
 }
 
 async function removeAdmin (interaction) {
   // Verify access level of user executing the command
-  if (!verifyAdmin(interaction)) { return }
+  if (!await verifyAdminAsync(interaction)) { return }
 
   const user = interaction.options.getUser('target')
   const guild = await getGuild(interaction.guildId)
 
   // Error if the target is not a bot admin
   if (!guild.admins.includes(user.id)) {
-    await interaction.reply(`${user.username} is geen bot admin, ${foemp()}!`)
+    await interaction.editReply(`${user.username} is geen bot admin, ${foemp()}!`)
     return
   }
 
@@ -89,7 +93,7 @@ async function removeAdmin (interaction) {
       .setLabel('nee')
       .setStyle(BUTTON_STYLES.SECONDARY)
   )
-  await interaction.reply({
+  await interaction.editReply({
     content: question,
     components: [actions]
   })
@@ -138,6 +142,8 @@ module.exports = {
         .setRequired(true))),
 
   async execute (interaction) {
+    await interaction.deferReply()
+
     switch (interaction.options.getSubcommand()) {
       case 'add':
         await addAdmin(interaction)
