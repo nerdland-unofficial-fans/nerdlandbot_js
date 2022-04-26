@@ -7,5 +7,7 @@ module.exports = {
     SUCCESS: 'SUCCESS', // a green button
     DANGER: 'DANGER', // a red button
     LINK: 'LINK' // a link button that navigates to a URL
-  }
+  },
+  EMBED_MAX_FIELD_LENGTH: 1024,
+  DISCORD_MSG_MAX_LENGTH: 2000
 }

@@ -16,7 +16,12 @@ async function reply (interaction, response) {
   }
 }
 
+async function sendToChannel (interaction, msg) {
+  await interaction.channel.send(msg)
+}
+
 module.exports = {
   defer,
-  reply
+  reply,
+  sendToChannel
 }
