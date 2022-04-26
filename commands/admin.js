@@ -62,7 +62,7 @@ async function addAdmin (interaction) {
 
   // Promote the target to bot admin
   guild.admins.push(user.id)
-  saveGuild(guild)
+  await saveGuild(guild)
   await interaction.editReply(`${user.username} is nu een bot admin.`)
 }
 
@@ -112,7 +112,7 @@ async function removeAdmin (interaction) {
         // Demote the bot admin to a regular user
         const index = guild.admins.indexOf(user.id)
         guild.admins.splice(index, 1)
-        saveGuild(guild)
+        await saveGuild(guild)
         await interaction.editReply({ content: `${user.username} is geen bot admin meer.`, components: [] })
       }
     })
@@ -120,6 +120,8 @@ async function removeAdmin (interaction) {
 }
 
 module.exports = {
+  verifyAdminAsync,
+
   data: new SlashCommandBuilder()
     .setName('admins')
     .setDescription('bot-admin functionaliteiten')

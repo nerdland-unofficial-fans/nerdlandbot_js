@@ -61,6 +61,7 @@ async function parseGuildFile (filepath) {
 function initGuild (guild) {
   // initialize all guild properties here in case we use an old save that does not have them yet!
   if (!guild.admins) { guild.admins = [] }
+  if (!guild.notifyLists) { guild.notifyLists = {} }
 }
 
 module.exports = {
