@@ -6,8 +6,10 @@ const { MessageEmbed, MessageActionRow, MessageSelectMenu } = require('discord.j
 const { DEFAULT_TIMEOUT } = require('../helpers/constants')
 
 async function addNewList (interaction) {
+  // Verify permissions
   if (!await verifyAdminAsync(interaction)) { return }
 
+  // Parse arguments from command
   const guild = await getGuild(interaction.guildId)
   const listName = interaction.options.getString('name')
 
@@ -24,31 +26,23 @@ async function addNewList (interaction) {
 }
 
 async function removeList (interaction) {
+  // Verify permissions
   if (!await verifyAdminAsync(interaction)) { return }
 
+  // Parse command arguments
   const guild = await getGuild(interaction.guildId)
   let listName = interaction.options.getString('name')
 
   // if no argument was passed, request one
   if (!listName) {
-    // check if there are any lists to remove
+    // return if the server has no lists to remove
     if (Object.keys(guild.notifyLists).length === 0) {
       await interaction.editReply('Er zijn nog geen lijstjes gemaakt op deze server!')
       return
     }
 
-    // Show the select menu, and keep a reference to the message
-    const selectionMenu = buildListSelector(guild)
-    await interaction.editReply({ content: 'Selecteer een lijst om te verwijderen.', components: [selectionMenu] })
-    const msg = await interaction.fetchReply()
-
-    // await and handle select menu choice
-    interaction = await msg.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, componentType: 'SELECT_MENU', time: DEFAULT_TIMEOUT })
-    await interaction.deferUpdate()
-    listName = interaction.values[0]
-
-    // remove selection menu from reply
-    interaction.editReply({ content: 'Verwerken...', components: [] })
+    // request listname from user
+    listName = await DisplayListSelector(interaction, guild, 'Selecteer een lijst om te verwijderen.')
   }
 
   // check if list exists
@@ -118,7 +112,7 @@ async function showAllLists (interaction) {
   await interaction.editReply({ embeds: [embed] })
 }
 
-function buildListSelector (guild) {
+async function DisplayListSelector (interaction, guild, question) {
   const options = []
   for (const list in guild.notifyLists) {
     options.push({
@@ -127,14 +121,21 @@ function buildListSelector (guild) {
     })
   }
 
-  return new MessageActionRow()
+  const actionRow = new MessageActionRow()
     .addComponents(
       new MessageSelectMenu()
         .setCustomId('select')
         .setPlaceholder('Kies een lijst...')
         .addOptions(options)
     )
+
+  const followMsg = await interaction.followUp({ content: question, components: [actionRow] })
+  const followInteraction = await followMsg.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, componentType: 'SELECT_MENU', time: DEFAULT_TIMEOUT, ephemeral: true })
+  const listName = followInteraction.values[0]
+  await followMsg.delete()
+  return listName
 }
+
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -178,6 +179,7 @@ module.exports = {
 
   async execute (interaction) {
     await interaction.deferReply()
+    const msg = await interaction.editReply('thinking...')
 
     switch (interaction.options.getSubcommand()) {
       case 'add':
