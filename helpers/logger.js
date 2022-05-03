@@ -36,11 +36,11 @@ function info (msg) {
 }
 
 function warn (msg) {
-  log(new Error(msg), 'warn')
+  log(msg, 'warn')
 }
 
 function error (msg) {
-  log(new Error(msg), 'error')
+  log(msg, 'error')
 }
 
 function log (msg, lvl) {
