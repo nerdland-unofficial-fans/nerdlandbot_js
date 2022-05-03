@@ -7,6 +7,7 @@ const { Routes } = require('discord-api-types/v9')
 // Import commands
 // Import helpers
 const log = require('./helpers/logger')
+const { foemp } = require('./helpers/foemp')
 
 // Setup our environment variables via dotenv
 require('dotenv').config()
@@ -19,15 +20,17 @@ const GUILD_ID = process.env.GUILD_ID
 if (PREFIX) {
   log.info(`Start bot with prefix '${PREFIX}'.`)
 } else {
-  log.error('Failed to start bot! No PREFIX found in .env file.')
-  throw new Error('Please provide a PREFIX in your .env file.')
+  const err = new Error('Failed to start bot! No PREFIX found in .env file.')
+  log.error(err)
+  throw err
 }
 
 if (CLIENT_ID) {
   log.info(`Start bot with client id '${CLIENT_ID}'.`)
 } else {
-  log.error('Failed to start bot! No CLIENT_ID found in .env file.')
-  throw new Error('Please provide a CLIENT_ID in your .env file.')
+  const err = new Error('Failed to start bot! No CLIENT_ID found in .env file.')
+  log.error(err)
+  throw err
 }
 
 const rest = new REST({ version: '9' }).setToken(DISCORD_TOKEN)
@@ -96,8 +99,12 @@ client.on('interactionCreate', async interaction => {
     await command.execute(interaction)
   } catch (error) {
     log.error(error)
-    // TODO hier moet nog een functiecall komen zodra we de foemp vervriendelijken in het weekend of voor bepaalde kanalen
-    await interaction.reply({ content: 'Da kennek nie foemp!', ephemeral: true })
+    const reply = { content: `Da kennek nie ${foemp()}!`, ephemeral: true }
+    if (interaction.deferred || interaction.replied) {
+      await interaction.editReply(reply)
+    } else {
+      await interaction.reply(reply)
+    }
   }
 })
 
