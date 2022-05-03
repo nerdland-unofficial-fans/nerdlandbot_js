@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
 const { getGuild, saveGuild } = require('../helpers/guildData')
 const { foemp } = require('../helpers/foemp')
+const { reply, defer } = require('../helpers/interactionHelper')
 const { verifyAdminAsync } = require('./admin')
 const { MessageEmbed, MessageActionRow, MessageSelectMenu } = require('discord.js')
 const { DEFAULT_TIMEOUT } = require('../helpers/constants')
@@ -15,14 +16,14 @@ async function addNewList (interaction) {
 
   // Check if list exists
   if (Object.keys(guild.notifyLists).includes(listName)) {
-    await interaction.editReply(`De lijst '${listName}' bestaat al, ${foemp()}!`)
+    await reply(interaction, `De lijst '${listName}' bestaat al, ${foemp()}!`)
     return
   }
 
   // create list
   guild.notifyLists[listName] = []
   await saveGuild(guild)
-  await interaction.editReply(`De lijst ${listName} is aangemaakt!`)
+  await reply(interaction, `De lijst ${listName} is aangemaakt!`)
 }
 
 async function removeList (interaction) {
@@ -37,7 +38,7 @@ async function removeList (interaction) {
   if (!listName) {
     // return if the server has no lists to remove
     if (Object.keys(guild.notifyLists).length === 0) {
-      await interaction.editReply('Er zijn nog geen lijstjes gemaakt op deze server!')
+      await reply(interaction, 'Er zijn nog geen lijstjes gemaakt op deze server!')
       return
     }
 
@@ -47,13 +48,13 @@ async function removeList (interaction) {
 
   // check if list exists
   if (!Object.keys(guild.notifyLists).includes(listName)) {
-    await interaction.editReply(`De lijst ${listName} bestaat niet, ${foemp()}!`)
+    await reply(interaction, `De lijst ${listName} bestaat niet, ${foemp()}!`)
     return
   }
 
   delete guild.notifyLists[listName]
   await saveGuild(guild)
-  await interaction.editReply(`De lijst ${listName} is verwijderd!`)
+  await reply(interaction, `De lijst ${listName} is verwijderd!`)
 }
 
 async function renameList (interaction) {
@@ -67,19 +68,19 @@ async function renameList (interaction) {
   if (!oldName || !Object.keys(guild.notifyLists).includes(oldName)) {
     // check if there are any lists to rename
     if (Object.keys(guild.notifyLists).length === 0) {
-      await interaction.editReply('Er zijn nog geen lijstjes gemaakt op deze server!')
+      await reply(interaction, 'Er zijn nog geen lijstjes gemaakt op deze server!')
       return
     }
 
     if (!Object.keys(guild.notifyLists).includes(oldName)) {
-      await interaction.editReply(`De lijst '${oldName}' bestaat niet, ${foemp()}!`)
+      await reply(interaction, `De lijst '${oldName}' bestaat niet, ${foemp()}!`)
       return
     }
   }
 
   // if no newName was passed, request one
   if (!newName) {
-    await interaction.editReply(`Je hebt geen nieuwe naam opgegeven voor '${oldName}', ${foemp()}!`)
+    await reply(interaction, `Je hebt geen nieuwe naam opgegeven voor '${oldName}', ${foemp()}!`)
   }
 
   // update the lists
@@ -88,7 +89,7 @@ async function renameList (interaction) {
   await saveGuild(guild)
 
   // send reply
-  await interaction.editReply(`De lijst '${oldName}' heet nu '${newName}'.`)
+  await reply(interaction, `De lijst '${oldName}' heet nu '${newName}'.`)
 }
 
 async function showAllLists (interaction) {
@@ -96,7 +97,7 @@ async function showAllLists (interaction) {
 
   // Check for existence of lists
   if (Object.keys(guild.notifyLists).length === 0) {
-    await interaction.editReply('Er zijn nog geen lijstjes gemaakt op deze server!')
+    await reply(interaction, 'Er zijn nog geen lijstjes gemaakt op deze server!')
     return
   }
 
@@ -109,7 +110,7 @@ async function showAllLists (interaction) {
   embed.setTitle('Lijstjes')
   embed.setDescription(desc)
 
-  await interaction.editReply({ embeds: [embed] })
+  await reply(interaction, { embeds: [embed] })
 }
 
 async function DisplayListSelector (interaction, guild, question) {
@@ -135,7 +136,6 @@ async function DisplayListSelector (interaction, guild, question) {
   await followMsg.delete()
   return listName
 }
-
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -178,8 +178,8 @@ module.exports = {
       .setDescription('Toon alle lijsten.')),
 
   async execute (interaction) {
-    await interaction.deferReply()
-    const msg = await interaction.editReply('thinking...')
+    await defer(interaction)
+    await reply(interaction, 'thinking...')
 
     switch (interaction.options.getSubcommand()) {
       case 'add':
