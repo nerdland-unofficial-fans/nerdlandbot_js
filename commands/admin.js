@@ -12,7 +12,7 @@ async function verifyAdminAsync (interaction) {
   const isBotAdmin = guild.admins.includes(user.id)
 
   if (!isGuildAdmin && !isBotAdmin) {
-    if (interaction.isdeferred || interaction.replied) {
+    if (interaction.deferred || interaction.replied) {
       await interaction.editReply('https://gph.is/g/4w8PDNj')
     } else {
       await interaction.reply('https://gph.is/g/4w8PDNj')
