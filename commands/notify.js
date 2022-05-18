@@ -15,7 +15,7 @@ async function addNewList (interaction) {
   const listName = interaction.options.getString('name')
 
   // Check if list exists
-  if (Object.keys(guild.notifyLists).includes(listName)) {
+  if (Object.keys(guild.notifyLists).map(notifyList => notifyList.toLowerCase()).includes(listName.toLowerCase())) {
     await reply(interaction, `De lijst '${listName}' bestaat al, ${foemp()}!`)
     return
   }

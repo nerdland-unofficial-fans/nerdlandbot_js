@@ -1,4 +1,4 @@
-async function defer (interaction, options = null) {
+async function defer (interaction, options = { ephemeral: false }) {
   if (interaction.isApplicationCommand() || interaction.isMessageComponent()) {
     if (!interaction.deferred && !interaction.replied) {
       await interaction.deferReply(options)
@@ -11,7 +11,7 @@ async function reply (interaction, response) {
     if (interaction.deferred || interaction.replied) {
       await interaction.editReply(response)
     } else {
-      await interaction.updateReply(response)
+      await interaction.reply(response)
     }
   }
 }
