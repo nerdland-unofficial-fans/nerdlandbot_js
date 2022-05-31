@@ -29,7 +29,7 @@ When trying out things, it's best to create your own bot and use that one to tes
 To get your bot invited onto a server, you need to create an invitation URL.
 - Go to your application (see creating your own test bot above)
 - Copy the "client id" from your application (! NOT your bot token !)
-- The URL to invite your bot to a server is: https://discord.com/api/oauth2/authorize?client_id=<APPLICATION_CLIENT_ID>&permissions=0&scope=bot
+- The URL to invite your bot to a server is: https://discord.com/api/oauth2/authorize?client_id=<APPLICATION_CLIENT_ID>&permissions=0&scope=bot%20applications.commands
 
 When visiting that page, you'll see a list of servers you have administration rights for. If you have your own server, it will be listed here. 
 If you want to test on the NerdlandBottest server, provide this URL in the #helpdesk channel and kindly ask somebody to accept your bot and create a test channel.
