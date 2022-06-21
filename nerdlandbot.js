@@ -107,7 +107,7 @@ client.on('interactionCreate', async interaction => {
     await command.execute(interaction)
   } catch (error) {
     log.error(error)
-    const reply = { content: `Da kennek nie ${foemp()}!`, ephemeral: true }
+    const reply = { content: `Da kennek nie ${foemp(interaction)}!`, ephemeral: true }
     if (interaction.deferred || interaction.replied) {
       await interaction.editReply(reply)
     } else {

@@ -1,6 +1,11 @@
-function foemp () {
-  // to be edited for issue #25
-  return 'foemp'
+const { DiscordTime, isWeekend } = require('./DateTimeHelper')
+
+function foemp (interaction) {
+  if (isWeekend(DiscordTime())) {
+    return 'schatje'
+  } else {
+    return 'foemp'
+  }
 }
 
 module.exports = {
