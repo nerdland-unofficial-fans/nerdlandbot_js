@@ -232,7 +232,7 @@ async function notifyList (interaction) {
     // handle interaction
     await defer(interaction)
     if (interaction.customId === 'cancel') {
-      interaction.deleteReply()
+      await reply(interaction, 'Ale, dag en bedankt dan eh!')
       return
     } else if (interaction.customId === 'sub') {
       guild.notifyLists[listName].push(userId)
