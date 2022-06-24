@@ -226,11 +226,14 @@ async function notifyList (interaction) {
           .setLabel('Annuleren')
           .setStyle(BUTTON_STYLES.DANGER)
       )
+
+    const initialInteraction = interaction
     const confirmationMessage = await reply(interaction, { content: `Je bent zelf niet ingeschreven op de lijst '${listName}'. Wens je toch een notify te sturen? Of wil je enkel jezelf toevoegen?`, components: [actionRow] })
     interaction = await confirmationMessage.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, componentType: 'BUTTON', time: DEFAULT_TIMEOUT, ephemeral: true })
 
     // handle interaction
     await defer(interaction)
+    initialInteraction.deleteReply()
     if (interaction.customId === 'cancel') {
       await reply(interaction, 'Ale, dag en bedankt dan eh!')
       return
