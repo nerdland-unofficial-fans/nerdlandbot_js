@@ -36,9 +36,14 @@ if (CLIENT_ID) {
 const rest = new REST({ version: '9' }).setToken(DISCORD_TOKEN)
 
 // Instantiate a new client with some necessary parameters.
-const client = new Client(
-  { intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] }
-)
+const client = new Client({
+  intents: [
+    Intents.FLAGS.GUILDS,
+    Intents.FLAGS.GUILD_MESSAGES,
+    Intents.FLAGS.GUILD_MEMBERS,
+    Intents.FLAGS.GUILD_PRESENCES
+  ]
+})
 // Load commands
 const commands = []
 client.commands = new Collection()
@@ -52,7 +57,6 @@ for (const file of commandFiles) {
 (async () => {
   try {
     log.info('Started refreshing application (/) commands!')
-
     // if a GUILD ID for a test server is defined, we should use the applicationGuildCommands routes as it updates the commands instantly
     if (GUILD_ID === undefined) {
       await rest.put(
