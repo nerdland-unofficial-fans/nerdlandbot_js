@@ -7,5 +7,6 @@ module.exports = {
     SUCCESS: 'SUCCESS', // a green button
     DANGER: 'DANGER', // a red button
     LINK: 'LINK' // a link button that navigates to a URL
-  }
+  },
+  DEFAULT_MEMBER_NOTIFICATION_NUMBER: 100
 }
