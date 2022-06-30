@@ -15,7 +15,7 @@ module.exports = {
     const channel = interaction.options.getChannel('channel')
     const onlyShowOnline = interaction.options.getBoolean('online')
     // get either the members of a channel, or from the whole server
-    const members = channel?.members ?? await interaction.guild.members.fetch()
+    const members = (await channel?.fetch())?.members ?? await interaction.guild.members.fetch()
 
     const memberCount = members.filter((member) => {
       if (member.user.bot) {

@@ -43,7 +43,8 @@ const client = new Client({
     Intents.FLAGS.GUILDS,
     Intents.FLAGS.GUILD_MESSAGES,
     Intents.FLAGS.GUILD_MEMBERS,
-    Intents.FLAGS.GUILD_PRESENCES
+    Intents.FLAGS.GUILD_PRESENCES,
+    Intents.FLAGS.GUILD_VOICE_STATES
   ]
 })
 // Load commands
@@ -59,6 +60,7 @@ for (const file of commandFiles) {
 (async () => {
   try {
     log.info('Started refreshing application (/) commands!')
+
     // if a GUILD ID for a test server is defined, we should use the applicationGuildCommands routes as it updates the commands instantly
     if (GUILD_ID === undefined) {
       await rest.put(
