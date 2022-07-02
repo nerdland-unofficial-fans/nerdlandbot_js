@@ -37,7 +37,7 @@ module.exports = {
     }).size
     const channelOrServer = channel || interaction.guild.name
 
-    // crude pluralization below, can eventually be fixed when/if decent i18n support is added
+    // TODO: crude pluralization below, can eventually be fixed when/if decent i18n support is added
     const amountOfUsers = `${memberCount} gebruiker${memberCount === 1 ? '' : 's'}`
 
     await reply(interaction, {
