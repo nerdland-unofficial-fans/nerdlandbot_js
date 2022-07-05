@@ -8,6 +8,7 @@ const { Routes } = require('discord-api-types/v9')
 // Import helpers
 const log = require('./helpers/logger')
 const { foemp } = require('./helpers/foemp')
+const { getGuild } = require('./helpers/guildData')
 
 // Setup our environment variables via dotenv
 require('dotenv').config()
@@ -16,6 +17,7 @@ const PREFIX = process.env.PREFIX
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN
 const CLIENT_ID = process.env.CLIENT_ID
 const GUILD_ID = process.env.GUILD_ID
+const NOTIFICATION_CHANNEL_ID = process.env.NOTIFICATION_CHANNEL_ID
 
 if (PREFIX) {
   log.info(`Start bot with prefix '${PREFIX}'.`)
@@ -36,9 +38,15 @@ if (CLIENT_ID) {
 const rest = new REST({ version: '9' }).setToken(DISCORD_TOKEN)
 
 // Instantiate a new client with some necessary parameters.
-const client = new Client(
-  { intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] }
-)
+const client = new Client({
+  intents: [
+    Intents.FLAGS.GUILDS,
+    Intents.FLAGS.GUILD_MESSAGES,
+    Intents.FLAGS.GUILD_MEMBERS,
+    Intents.FLAGS.GUILD_PRESENCES,
+    Intents.FLAGS.GUILD_VOICE_STATES
+  ]
+})
 // Load commands
 const commands = []
 client.commands = new Collection()
@@ -105,6 +113,23 @@ client.on('interactionCreate', async interaction => {
     } else {
       await interaction.reply(reply)
     }
+  }
+})
+
+client.on('guildMemberAdd', async member => {
+  try {
+    const memberCount = (await member.guild.members.fetch()).filter(member => !member.user.bot).size
+    const guildData = await getGuild(GUILD_ID)
+    if (memberCount % guildData.memberNotificationNumber === 0) {
+      const notificationChannel = client.channels.cache?.find(channel => channel.id === NOTIFICATION_CHANNEL_ID)
+      if (!notificationChannel) {
+        log.error(`notification channel ${NOTIFICATION_CHANNEL_ID} not found on guild ${GUILD_ID}`)
+        return
+      }
+      notificationChannel.send(`${member.guild.name} heeft nu ${memberCount} leden! Proficiat!`)
+    }
+  } catch (error) {
+    log.error(error)
   }
 })
 
