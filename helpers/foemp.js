@@ -1,7 +1,7 @@
-const { DiscordTime, isWeekend } = require('./DateTimeHelper')
+const { discordTime, isWeekend } = require('./dateTimeHelper')
 
 function foemp (interaction) {
-  if (isWeekend(DiscordTime())) {
+  if (isWeekend(discordTime())) {
     return 'schatje'
   } else {
     return 'foemp'

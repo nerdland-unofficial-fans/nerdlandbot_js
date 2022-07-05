@@ -1,16 +1,16 @@
 const { ZoneId, Instant } = require('@js-joda/core')
 require('@js-joda/timezone')
 
-const TimeZones = {
+const timeZones = {
   BRUSSELS: ZoneId.of('Europe/Brussels')
 }
 
-function Now (zone) {
+function now (zone) {
   return Instant.now().atZone(zone)
 }
 
-function DiscordTime () {
-  return Now(TimeZones.BRUSSELS)
+function discordTime () {
+  return now(timeZones.BRUSSELS)
 }
 
 function isWeekend (zonedDateTime) {
@@ -18,8 +18,8 @@ function isWeekend (zonedDateTime) {
 }
 
 module.exports = {
-  TimeZones,
-  Now,
-  DiscordTime,
+  timeZones,
+  now,
+  discordTime,
   isWeekend
 }
