@@ -8,6 +8,7 @@ const { Routes } = require('discord-api-types/v9')
 // Import helpers
 const log = require('./helpers/logger')
 const { foemp } = require('./helpers/foemp')
+const { startTasks } = require('./tasks')
 
 // Setup our environment variables via dotenv
 require('dotenv').config()
@@ -73,8 +74,11 @@ for (const file of commandFiles) {
 })()
 
 // Notify progress
-client.on('ready', function (e) {
+client.on('ready', e => {
   log.info(`Logged in as ${client.user.tag}!`)
+
+  // start tasks
+  startTasks(client) // no need to await
 })
 
 client.on('messageCreate', (message) => {
