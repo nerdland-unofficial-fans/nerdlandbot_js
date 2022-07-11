@@ -17,7 +17,7 @@ async function addNewList (interaction) {
 
   // Check if list exists
   if (Object.keys(guild.notifyLists).map(notifyList => notifyList.toLowerCase()).includes(listName.toLowerCase())) {
-    await reply(interaction, `De lijst '${listName}' bestaat al, ${foemp()}!`)
+    await reply(interaction, `De lijst '${listName}' bestaat al, ${foemp(interaction)}!`)
     return
   }
 
@@ -49,7 +49,7 @@ async function removeList (interaction) {
 
   // check if list exists
   if (!Object.keys(guild.notifyLists).includes(listName)) {
-    await reply(interaction, `De lijst ${listName} bestaat niet, ${foemp()}!`)
+    await reply(interaction, `De lijst ${listName} bestaat niet, ${foemp(interaction)}!`)
     return
   }
 
@@ -74,14 +74,14 @@ async function renameList (interaction) {
     }
 
     if (!Object.keys(guild.notifyLists).includes(oldName)) {
-      await reply(interaction, `De lijst '${oldName}' bestaat niet, ${foemp()}!`)
+      await reply(interaction, `De lijst '${oldName}' bestaat niet, ${foemp(interaction)}!`)
       return
     }
   }
 
   // if no newName was passed, request one
   if (!newName) {
-    await reply(interaction, `Je hebt geen nieuwe naam opgegeven voor '${oldName}', ${foemp()}!`)
+    await reply(interaction, `Je hebt geen nieuwe naam opgegeven voor '${oldName}', ${foemp(interaction)}!`)
   }
 
   // update the lists

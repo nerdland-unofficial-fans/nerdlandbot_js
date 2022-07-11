@@ -36,15 +36,15 @@ If you want to test on the NerdlandBottest server, provide this URL in the #help
 Alternatively, you will need to acquire a `DISCORD_TOKEN`. It is possible to obtain one with a developer account on Discord.
 
 # Create your .env file
-You need a file to keep your bot token safely. You'll do this by creating a file with name ".env" which must contain following lines:
-In the .env file there should be:
+You need a file to keep your bot token safely. You'll do this by creating a file with name ".env" which must contain following lines (see `.env.EXAMPLE` for an example. you can copy this file to `.env` and fill in your own values): 
 
 - DISCORD_TOKEN = "bot token"
 - PREFIX = "bot prefix"
 - CLIENT_ID = "user id for the bot"
 - GUILD_ID = "The id for your test-server"
+- NOTIFICATION_CHANNEL_ID = "The id for a channel where periodic new member messages will be sent to"
 
-Important note: The GUILD_ID limits your instance of the bot to your server, but makes sure commands are updated instantly instead of using discords hourly cache. This property should be omitted for production builds!
+**Important note**: The GUILD_ID limits your instance of the bot to your server, but makes sure commands are updated instantly instead of using discords hourly cache. This property should be omitted for production builds!
 
 # Running the bot
 - npm install
