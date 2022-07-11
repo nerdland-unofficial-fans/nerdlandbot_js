@@ -3,7 +3,7 @@ const { foemp } = require('../helpers/foemp')
 const { reply, defer } = require('../helpers/interactionHelper')
 const { verifyAdminAsync } = require('./admin')
 const { getGuild, saveGuild } = require('../helpers/guildData')
-const { addPurgerAndStartTask, stopTask } = require('../tasks/purgeChannel')
+const { addPurgerAndStartTask, removePurgeChannelTask } = require('../tasks/purgeChannel')
 const { MessageEmbed } = require('discord.js')
 
 const cronSyntaxRegex = /(((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5}/
@@ -69,7 +69,7 @@ const removePurger = async interaction => {
     await reply(interaction, 'Er is geen purger gemaakt op dit kanaal!')
     return
   }
-  stopTask(channel.id)
+  await removePurgeChannelTask(channel.id)
   delete guild.purgers[channel.id]
   await saveGuild(guild)
   await reply(interaction, 'done')
