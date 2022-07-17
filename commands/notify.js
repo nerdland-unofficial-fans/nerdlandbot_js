@@ -252,12 +252,12 @@ async function notifyList (interaction) {
 
   // notify list
   const botName = await getUserNameFromIdAsync(interaction, interaction.applicationId)
-  const username = getTagFromId(interaction, userId)
+  const username = getTagFromId(userId)
   const tags = []
   let tag = ''
   const connection = ', '
   for (const id of subscribers) {
-    const usr = getTagFromId(interaction, id)
+    const usr = getTagFromId(id)
 
     if (tag.length + connection.length + usr.length < DISCORD_MSG_MAX_LENGTH) {
       if (tag.length > 0) {
