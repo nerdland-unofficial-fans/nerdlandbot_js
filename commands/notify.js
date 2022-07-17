@@ -241,9 +241,8 @@ async function notifyList (interaction) {
       guild.notifyLists[listName].push(userId)
       await reply(interaction, `Je ontvangt nu notificaties voor de lijst ${listName}`)
       return
-    } else {
-      // continue and notify for list
     }
+    // if neither case was true was true, conitue notifying the list
   }
 
   if (subscribers.length === 0) {
@@ -256,12 +255,13 @@ async function notifyList (interaction) {
   const username = getTagFromId(interaction, userId)
   const tags = []
   let tag = ''
+  const connection = ', '
   for (const id of subscribers) {
     const usr = getTagFromId(interaction, id)
 
-    if (usr.length + tag.length + 5 < DISCORD_MSG_MAX_LENGTH) {
+    if (tag.length + connection.length + usr.length < DISCORD_MSG_MAX_LENGTH) {
       if (tag.length > 0) {
-        tag += ', '
+        tag += connection
       }
       tag += usr
     } else {
