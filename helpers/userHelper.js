@@ -7,14 +7,12 @@ async function getUserNameFromIdAsync (interaction, id) {
   if (member.nickname) { return member.nickname } else { return member.user.username }
 }
 
-async function getTagFromIdAsync (interaction, id) {
-  const member = await getMemberFromIdAsync(interaction, id)
-  return member.user.toString()
+function getTagFromId (id) {
+  return `<@${id}>`
 }
 
 module.exports = {
   getMemberFromIdAsync,
   getUserNameFromIdAsync,
-  getTagFromIdAsync
-
+  getTagFromId
 }

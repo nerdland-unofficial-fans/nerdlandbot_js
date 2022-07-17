@@ -5,7 +5,7 @@ const { reply, defer, sendToChannel } = require('../helpers/interactionHelper')
 const { verifyAdminAsync } = require('./admin')
 const { MessageEmbed, MessageActionRow, MessageSelectMenu, MessageButton } = require('discord.js')
 const { DEFAULT_TIMEOUT, BUTTON_STYLES, EMBED_MAX_FIELD_LENGTH, DISCORD_MSG_MAX_LENGTH } = require('../helpers/constants')
-const { getUserNameFromIdAsync, getTagFromIdAsync } = require('../helpers/userHelper')
+const { getUserNameFromIdAsync, getTagFromId } = require('../helpers/userHelper')
 
 async function addNewList (interaction) {
   // Verify permissions
@@ -253,11 +253,11 @@ async function notifyList (interaction) {
 
   // notify list
   const botName = await getUserNameFromIdAsync(interaction, interaction.applicationId)
-  const username = await getTagFromIdAsync(interaction, userId)
+  const username = getTagFromId(interaction, userId)
   const tags = []
   let tag = ''
   for (const id of subscribers) {
-    const usr = await getTagFromIdAsync(interaction, id)
+    const usr = getTagFromId(interaction, id)
 
     if (usr.length + tag.length + 5 < DISCORD_MSG_MAX_LENGTH) {
       if (tag.length > 0) {
