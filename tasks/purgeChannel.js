@@ -13,20 +13,25 @@ const twoWeeksInMilliSeconds = 14 * 24 * 60 * 60 * 1000
 
 const checkIndividual = (message, maxAge) => {
   const maxAgeInMilliSeconds = maxAge * 60 * 60 * 1000
-  return !message.pinned && message.createdAt < (new Date() - maxAgeInMilliSeconds)
+  return !message.pinned &&
+    message.createdAt < (new Date() - maxAgeInMilliSeconds)
 }
 
 const checkBulk = (message, maxAge) => {
   const maxAgeInMilliSeconds = maxAge * 60 * 60 * 1000
-  return !message.pinned && message.createdAt > (new Date() - twoWeeksInMilliSeconds) && message.createdAt < (new Date() - maxAgeInMilliSeconds)
+  return !message.pinned &&
+    message.createdAt > (new Date() - twoWeeksInMilliSeconds) &&
+    message.createdAt < (new Date() - maxAgeInMilliSeconds)
 }
 
 const checkNonBulk = (message, maxAge) => {
   const maxAgeInMilliSeconds = maxAge * 60 * 60 * 1000
-  return !message.pinned && message.createdAt < (new Date() - twoWeeksInMilliSeconds) && message.createdAt < (new Date() - maxAgeInMilliSeconds)
+  return !message.pinned &&
+    message.createdAt < (new Date() - twoWeeksInMilliSeconds) &&
+    message.createdAt < (new Date() - maxAgeInMilliSeconds)
 }
 
-const initPurgeChannelTasks = async (client) => {
+const initPurgeChannelTasksAsync = async (client) => {
   _client = client
   const guildsData = await getAllGuilds()
   guildsData.forEach(guildData => {
@@ -38,7 +43,7 @@ const initPurgeChannelTasks = async (client) => {
   })
 }
 
-const removePurgeChannelTask = async channelId => {
+const removePurgeChannelTask = (channelId) => {
   if (!tasks[channelId]) {
     return
   }
@@ -82,11 +87,12 @@ const addPurgerAndStartTask = (purger) => {
           // actually delete them
           const deletedMessages = await channelToPurge.bulkDelete(messagesToBulkDelete)
 
-          // if bulkDelete didn't delete any, we can stop this loop and move on to the indivitual delete loop
+          countDeletedMessage += deletedMessages.size
+
+          // if any messages were filtered for individual deletion, we can stop this loop and move on to the individual deletion loop
           if (messagesToDeleteIndividually.size > 0) {
             break
           }
-          countDeletedMessage += deletedMessages.size
         }
 
         // if we still have messages that are older than 2 weeks, we need to use the individual delete, (sadly, these get capped at 5 calls per 5 seconds or so, yikes)
@@ -113,7 +119,7 @@ const addPurgerAndStartTask = (purger) => {
           }
         }
 
-        // actually delete them
+        // done fetching all messages, now actually delete them individually
         const deleteMessagePromises = messagesToDeleteIndividually.map(async message => {
           await channelToPurge.messages.delete(message)
           countDeletedMessage++
@@ -125,7 +131,7 @@ const addPurgerAndStartTask = (purger) => {
 
         log.info(`Purge "${purger.description}" complete, deleted ${countDeletedMessage} messages of channel ${channelToPurge.name} <#${purger.channelId}>`)
       } catch (error) {
-        log.error(`error executing Purger  "${purger.description}" to channel  <#${purger.channelId}>: ${error}`)
+        log.error(`error executing Purger "${purger.description}" to channel <#${purger.channelId}>: ${error}`)
       }
     },
     undefined, // onComplete
@@ -142,4 +148,4 @@ const startAllPurgeChannelTasks = () => {
   Object.values(tasks).forEach(task => task.stop())
 }
 
-module.exports = { initPurgeChannelTasks, startAllPurgeChannelTasks, stopAllPurgeChannelTasks, addPurgerAndStartTask, removePurgeChannelTask }
+module.exports = { initPurgeChannelTasksAsync, startAllPurgeChannelTasks, stopAllPurgeChannelTasks, addPurgerAndStartTask, removePurgeChannelTask }

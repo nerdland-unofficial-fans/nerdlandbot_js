@@ -50,12 +50,12 @@ const showAllPurgers = async interaction => {
 
   // build reply
   const embed = new MessageEmbed()
-  const desc = Object.values(guild.purgers).map(
+  const embedContent = Object.values(guild.purgers).map(
     ({ description, maxAge, cronTime, channelId }) =>
       `\u2022 <#${channelId}> - max ${maxAge} uur. \`${cronTime}\` (${description || 'Geen omschrijving'})`
   ).join('\n')
   embed.setTitle('Purgers')
-  embed.setDescription(desc)
+  embed.setDescription(embedContent)
 
   await reply(interaction, { embeds: [embed] })
 }
@@ -69,10 +69,10 @@ const removePurger = async interaction => {
     await reply(interaction, 'Er is geen purger gemaakt op dit kanaal!')
     return
   }
-  await removePurgeChannelTask(channel.id)
+  removePurgeChannelTask(channel.id)
   delete guild.purgers[channel.id]
   await saveGuild(guild)
-  await reply(interaction, 'done')
+  await reply(interaction, 'Purger voor dit kanaal is gestopt en verwijderd.')
 }
 
 module.exports = {
@@ -93,7 +93,7 @@ module.exports = {
       )
     )
     .addSubcommand(subcommand => subcommand
-      .setName('list')
+      .setName('show')
       .setDescription('Toont alle bestaande purgers in deze discord')
     )
     .addSubcommand(subcommand => subcommand
@@ -110,7 +110,7 @@ module.exports = {
       case 'remove':
         await removePurger(interaction)
         break
-      case 'list':
+      case 'show':
         await showAllPurgers(interaction)
         break
     }
