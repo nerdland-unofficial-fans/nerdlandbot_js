@@ -1,7 +1,7 @@
 async function defer (interaction, options = { ephemeral: false }) {
   if (interaction.isApplicationCommand() || interaction.isMessageComponent()) {
     if (!interaction.deferred && !interaction.replied) {
-      await interaction.deferReply(options)
+      return await interaction.deferReply(options)
     }
   }
 }
@@ -9,14 +9,19 @@ async function defer (interaction, options = { ephemeral: false }) {
 async function reply (interaction, response) {
   if (interaction.isApplicationCommand() || interaction.isMessageComponent()) {
     if (interaction.deferred || interaction.replied) {
-      await interaction.editReply(response)
+      return await interaction.editReply(response)
     } else {
-      await interaction.reply(response)
+      return await interaction.reply(response)
     }
   }
 }
 
+async function sendToChannel (interaction, msg) {
+  return await interaction.channel.send(msg)
+}
+
 module.exports = {
   defer,
-  reply
+  reply,
+  sendToChannel
 }

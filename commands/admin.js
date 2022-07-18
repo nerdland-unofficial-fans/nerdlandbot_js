@@ -46,7 +46,7 @@ async function addAdmin (interaction) {
 
   // Error if the target already is a bot admin
   if (guild.admins.includes(user.id)) {
-    await reply(interaction, `${user.username} is al een bot admin, ${foemp()}!`)
+    await reply(interaction, `${user.username} is al een bot admin, ${foemp(interaction)}!`)
     return
   }
 
@@ -54,7 +54,7 @@ async function addAdmin (interaction) {
 
   // Error if the target already is a server admin
   if (member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
-    await reply(interaction, `${user.username} is al een server admin, het is niet nodig om hem/haar/helicopter ook bot admin te maken, ${foemp()}!`)
+    await reply(interaction, `${user.username} is al een server admin, het is niet nodig om hem/haar/helicopter ook bot admin te maken, ${foemp(interaction)}!`)
     return
   }
 
@@ -73,7 +73,7 @@ async function removeAdmin (interaction) {
 
   // Error if the target is not a bot admin
   if (!guild.admins.includes(user.id)) {
-    await reply(interaction, `${user.username} is geen bot admin, ${foemp()}!`)
+    await reply(interaction, `${user.username} is geen bot admin, ${foemp(interaction)}!`)
     return
   }
 
