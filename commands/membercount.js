@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
-const { reply } = require('../helpers/interactionHelper')
+const { reply, defer } = require('../helpers/interactionHelper')
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -12,6 +12,7 @@ module.exports = {
       useroption.setName('channel').setDescription('van welk kanaal wil je het aantal zien [optioneel]')
     ),
   async execute (interaction) {
+    await defer(interaction)
     const channel = interaction.options.getChannel('channel')
     const onlyShowOnline = interaction.options.getBoolean('online')
     // get either the members of a channel, or from the whole server
