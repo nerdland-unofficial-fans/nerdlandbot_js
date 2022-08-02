@@ -43,13 +43,13 @@ const initPurgeChannelTasksAsync = async (client) => {
   })
 }
 
-const removePurgeChannelTask = (channelId) => {
-  if (!tasks[channelId]) {
+const removePurgeChannelTask = (purger) => {
+  if (!tasks[purger.channelId]) {
     return
   }
-  tasks[channelId].stop()
-  delete tasks[channelId]
-  log.info(`stopped and removed Purge task on channel <#${channelId}>`)
+  tasks[purger.channelId].stop()
+  delete tasks[purger.channelId]
+  log.info(`stopped and removed Purge task on channel <#${purger.channelId}>. Its settings were: max ${purger.maxAge} hours - cronTime: ${purger.cronTime}`)
 }
 
 const addPurgerAndStartTask = (purger) => {
@@ -59,10 +59,10 @@ const addPurgerAndStartTask = (purger) => {
       try {
         const channelToPurge = await _client.channels.cache.find(channel => channel.id === purger.channelId)?.fetch()
         if (!channelToPurge) {
-          log.warn(`Task Purge failed: channel <#${purger.channelId}> does not exist [${purger.description}]`)
+          log.warn(`Task Purge failed: channel <#${purger.channelId}> does not exist`)
           return
         }
-        log.info(`Task Purge: channel ${channelToPurge.name} <#${purger.channelId}> [${purger.description}]`)
+        log.info(`Task Purge: channel ${channelToPurge.name} <#${purger.channelId}>`)
 
         let lastFetchedMessageId // can be undefined for first fetch
         let messagesToDeleteIndividually = new Collection()
@@ -97,7 +97,7 @@ const addPurgerAndStartTask = (purger) => {
 
         // if we still have messages that are older than 2 weeks, we need to use the individual delete, (sadly, these get capped at 5 calls per 5 seconds or so, yikes)
         if (messagesToDeleteIndividually.size === 0) {
-          log.info(`Purge "${purger.description}" complete, deleted ${countDeletedMessage} messages of channel ${channelToPurge.name} <#${purger.channelId}>`)
+          log.info(`Purge complete, deleted ${countDeletedMessage} messages of channel ${channelToPurge.name} <#${purger.channelId}>`)
           return
         }
 
@@ -129,15 +129,15 @@ const addPurgerAndStartTask = (purger) => {
           log.warn(`Something went wrong purging all messages of channel ${channelToPurge.name} <#${purger.channelId}>`)
         }
 
-        log.info(`Purge "${purger.description}" complete, deleted ${countDeletedMessage} messages of channel ${channelToPurge.name} <#${purger.channelId}>`)
+        log.info(`Purge complete, deleted ${countDeletedMessage} messages of channel ${channelToPurge.name} <#${purger.channelId}>`)
       } catch (error) {
-        log.error(`error executing Purger "${purger.description}" to channel <#${purger.channelId}>: ${error}`)
+        log.error(`error executing Purger to channel <#${purger.channelId}>: ${error}`)
       }
     },
     undefined, // onComplete
     true // start
   )
-  log.info(`added new Purge task to channel <#${purger.channelId}>: "${purger.description}" - max ${purger.maxAge} uur - cronTime: ${purger.cronTime}`)
+  log.info(`added new Purge task to channel <#${purger.channelId}>: max ${purger.maxAge} hours - cronTime: ${purger.cronTime}`)
 }
 
 // stop and start all PurgeChannelTasks not used atm, but could be useful eventually

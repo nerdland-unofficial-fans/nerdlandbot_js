@@ -11,14 +11,17 @@ const cronSyntaxRegex = /(((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5}/
 const addNewPurger = async interaction => {
   if (!await verifyAdminAsync(interaction)) { return }
 
-  const description = interaction.options.getString('description')
   const cronTime = interaction.options.getString('cron_time') ?? '0 0 * * *'
   const maxAge = interaction.options.getInteger('max_age')
-  const channel = interaction.channel
+  const channel = interaction.options.getChannel('channel') ?? interaction.channel
   const guild = await getGuild(interaction.guildId)
 
-  if (channel.isVoiceBased) {
+  if (channel.isVoice()) {
     await reply(interaction, `Dat kan niet voor een voicekanaal, ${foemp(interaction)}!`)
+    return
+  }
+  if (!channel.permissionsFor(interaction.guild.me).has(['MANAGE_MESSAGES'])) {
+    await reply(interaction, `Dit gaat niet want ik heb geen rechten om berichten te wissen in dat kanaal, ${foemp(interaction)}!`)
     return
   }
   if (!cronSyntaxRegex.test(cronTime)) {
@@ -31,11 +34,11 @@ const addNewPurger = async interaction => {
     return
   }
 
-  const newPurger = { maxAge, channelId: channel.id, description, cronTime }
+  const newPurger = { maxAge, channelId: channel.id, cronTime }
   guild.purgers[channel.id] = newPurger
   await saveGuild(guild)
   addPurgerAndStartTask(newPurger)
-  await reply(interaction, `De purger met omschrijving \`${description}\` is aangemaakt op kanaal ${channel}. max_age: ${maxAge} uur. \`${cronTime}\``)
+  await reply(interaction, `De purger is aangemaakt op kanaal ${channel}. max_age: ${maxAge} uur. \`${cronTime}\``)
 }
 
 const showAllPurgers = async interaction => {
@@ -51,8 +54,8 @@ const showAllPurgers = async interaction => {
   // build reply
   const embed = new MessageEmbed()
   const embedContent = Object.values(guild.purgers).map(
-    ({ description, maxAge, cronTime, channelId }) =>
-      `\u2022 <#${channelId}> - max ${maxAge} uur. \`${cronTime}\` (${description || 'Geen omschrijving'})`
+    ({ maxAge, cronTime, channelId }) =>
+      `\u2022 <#${channelId}> - max ${maxAge} uur. \`${cronTime}\` `
   ).join('\n')
   embed.setTitle('Purgers')
   embed.setDescription(embedContent)
@@ -62,17 +65,17 @@ const showAllPurgers = async interaction => {
 
 const removePurger = async interaction => {
   if (!await verifyAdminAsync(interaction)) { return }
-  const channel = interaction.channel
+  const channel = interaction.options.getChannel('channel') ?? interaction.channel
   const guild = await getGuild(interaction.guildId)
 
   if (!channel || !guild.purgers[channel.id]) {
-    await reply(interaction, 'Er is geen purger gemaakt op dit kanaal!')
+    await reply(interaction, `Er is geen purger gemaakt op dit kanaal,  ${foemp()}!`)
     return
   }
-  removePurgeChannelTask(channel.id)
+  removePurgeChannelTask(guild.purgers[channel.id])
   delete guild.purgers[channel.id]
   await saveGuild(guild)
-  await reply(interaction, 'Purger voor dit kanaal is gestopt en verwijderd.')
+  await reply(interaction, 'De purger voor dit kanaal is gestopt en verwijderd.')
 }
 
 module.exports = {
@@ -86,10 +89,10 @@ module.exports = {
         option.setName('max_age').setDescription('Hoe oud mogen berichten maximaal zijn, in uren. (max 2 weken)').setRequired(true)
       )
       .addStringOption(option =>
-        option.setName('description').setDescription('Geef deze purger een korte omschrijving').setRequired(true)
-      )
-      .addStringOption(option =>
         option.setName('cron_time').setDescription('ADVANCED! Wanneer draait dit? (cron syntax) [optioneel, standaard is "0 0 * * *": elke dag om 00h00]')
+      )
+      .addChannelOption(option =>
+        option.setName('channel').setDescription('Op welk kanaal wil je de purger toevoegen? [optioneel, standaard wordt het huidige kanaal gekozen]')
       )
     )
     .addSubcommand(subcommand => subcommand
@@ -99,6 +102,9 @@ module.exports = {
     .addSubcommand(subcommand => subcommand
       .setName('remove')
       .setDescription('Verwijderd een bestaande purge taak van dit kanaal')
+      .addChannelOption(option =>
+        option.setName('channel').setDescription('Op welk kanaal wil je de purger verwijderen? [optioneel, standaard wordt het huidige kanaal gekozen]')
+      )
     ),
   async execute (interaction) {
     await defer(interaction, { ephemeral: true })
