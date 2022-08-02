@@ -7,18 +7,18 @@ const { foemp } = require('../helpers/foemp')
 
 const setMemberNotificationChannel = async interaction => {
   const channel = interaction.options.getChannel('channel')
-  if(channel.isVoice()){
+  if (channel.isVoice()) {
     await reply(interaction, `Dit gaat niet want het is geen text kanaal, ${foemp(interaction)}!`)
     return
   }
-  if(!channel.permissionsFor(interaction.guild.me).has(['SEND_MESSAGES'])){
+  if (!channel.permissionsFor(interaction.guild.me).has(['SEND_MESSAGES'])) {
     await reply(interaction, `Dit gaat niet want ik heb geen rechten om berichten te sturen in dit kanaal, ${foemp(interaction)}!`)
     return
   }
   const guildData = await getGuild(interaction.guild.id)
   guildData.memberNotificationChannelId = channel.id
   await saveGuild(guildData)
-  await reply(interaction, `Ok. Vanaf nu wordt bij elke schijf van ${guildData.memberNotificationNumber } gebruikers een melding geplaatst in het kanaal <#${guildData.memberNotificationChannelId}>.`)
+  await reply(interaction, `Ok. Vanaf nu wordt bij elke schijf van ${guildData.memberNotificationNumber} gebruikers een melding geplaatst in het kanaal <#${guildData.memberNotificationChannelId}>.`)
 }
 
 const setMemberNotificationNumber = async interaction => {
@@ -26,8 +26,8 @@ const setMemberNotificationNumber = async interaction => {
   const guildData = await getGuild(interaction.guild.id)
   guildData.memberNotificationNumber = memberNotificationNumber
   await saveGuild(guildData)
-  if(guildData.memberNotificationChannelId){
-    await reply(interaction, `Ok. Vanaf nu wordt bij elke schijf van ${guildData.memberNotificationNumber } gebruikers een melding geplaatst in het kanaal <#${guildData.memberNotificationChannelId}>.`)
+  if (guildData.memberNotificationChannelId) {
+    await reply(interaction, `Ok. Vanaf nu wordt bij elke schijf van ${guildData.memberNotificationNumber} gebruikers een melding geplaatst in het kanaal <#${guildData.memberNotificationChannelId}>.`)
   } else {
     await reply(interaction, `Ok. De ingestelde schijf (van aantal gebruikers) wanneer meldingen geplaatst zullen worden is nu ${memberNotificationNumber}. (enkel indien je ook \`set_new_member_notif_channel\` instelt)`)
   }
