@@ -208,43 +208,6 @@ async function notifyList (interaction) {
   }
 
   const subscribers = guild.notifyLists[listName]
-
-  // check if user is subscribed to the list
-  if (!subscribers.includes(userId)) {
-    const actionRow = new MessageActionRow()
-      .addComponents(
-        new MessageButton()
-          .setCustomId('notify')
-          .setLabel('Notify!')
-          .setStyle(BUTTON_STYLES.PRIMARY),
-        new MessageButton()
-          .setCustomId('sub')
-          .setLabel('Schrijf me in!')
-          .setStyle(BUTTON_STYLES.SUCCESS),
-        new MessageButton()
-          .setCustomId('cancel')
-          .setLabel('Annuleren')
-          .setStyle(BUTTON_STYLES.DANGER)
-      )
-
-    const initialInteraction = interaction
-    const confirmationMessage = await reply(interaction, { content: `Je bent zelf niet ingeschreven op de lijst '${listName}'. Wens je toch een notify te sturen? Of wil je enkel jezelf toevoegen?`, components: [actionRow] })
-    interaction = await confirmationMessage.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, componentType: 'BUTTON', time: DEFAULT_TIMEOUT, ephemeral: true })
-
-    // handle interaction
-    await defer(interaction)
-    initialInteraction.deleteReply()
-    if (interaction.customId === 'cancel') {
-      await reply(interaction, 'Ale, dag en bedankt dan eh!')
-      return
-    } else if (interaction.customId === 'sub') {
-      guild.notifyLists[listName].push(userId)
-      await reply(interaction, `Je ontvangt nu notificaties voor de lijst ${listName}`)
-      return
-    }
-    // if neither case was true was true, conitue notifying the list
-  }
-
   if (subscribers.length === 0) {
     await reply(interaction, `Er is nog niemand ingeschreven op deze lijst, ${foemp()}!`)
     return
