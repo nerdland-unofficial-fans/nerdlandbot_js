@@ -3,8 +3,8 @@ const { getGuild, saveGuild } = require('../helpers/guildData')
 const { foemp } = require('../helpers/foemp')
 const { reply, defer, sendToChannel } = require('../helpers/interactionHelper')
 const { verifyAdminAsync } = require('./admin')
-const { MessageEmbed, MessageActionRow, MessageSelectMenu, MessageButton } = require('discord.js')
-const { DEFAULT_TIMEOUT, BUTTON_STYLES, EMBED_MAX_FIELD_LENGTH, DISCORD_MSG_MAX_LENGTH } = require('../helpers/constants')
+const { MessageEmbed, MessageActionRow, MessageSelectMenu } = require('discord.js')
+const { DEFAULT_TIMEOUT, EMBED_MAX_FIELD_LENGTH, DISCORD_MSG_MAX_LENGTH } = require('../helpers/constants')
 const { getUserNameFromIdAsync, getTagFromId } = require('../helpers/userHelper')
 
 async function addNewList (interaction) {
