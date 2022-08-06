@@ -45,12 +45,41 @@ async function showSettings (interaction) {
   const embed = new EmbedBuilder()
   const settings = [
     `\u2022 new_member_notif_number: ${guildData.memberNotificationNumber}`,
-    `\u2022 new_member_notif_channel: <#${guildData.memberNotificationChannelId}>`
+    `\u2022 new_member_notif_channel: <#${guildData.memberNotificationChannelId}>`,
+    `\u2022 moderator_alert_channel: <#${guildData.moderatorAlertChannelId}>`
   ]
   embed.setTitle('Settings: ')
   embed.setDescription(settings.join('\n'))
 
   await reply(interaction, { embeds: [embed] })
+}
+
+async function setModeratorAlertChannel (interaction) {
+  const channel = interaction.options.getChannel('channel')
+  if (channel.isVoice()) {
+    await reply(interaction, `Dit gaat niet want het is geen text kanaal, ${foemp(interaction)}!`)
+    return
+  }
+  if (!channel.permissionsFor(interaction.guild.me).has(['SEND_MESSAGES'])) {
+    await reply(interaction, `Dit gaat niet want ik heb geen rechten om berichten te sturen in dit kanaal, ${foemp(interaction)}!`)
+    return
+  }
+  const guildData = await getGuild(interaction.guild.id)
+  guildData.moderatorAlertChannelId = channel.id
+  await saveGuild(guildData)
+  await reply(interaction, `Ok. Vanaf nu worden moderator alerts geplaatst in het kanaal <#${guildData.memberNotificationChannelId}>.`)
+}
+
+async function setChannelPurpose (interaction) {
+  const channelPurpose = interaction.options.getString('channel_purpose')
+  switch (channelPurpose) {
+    case 'member_notification_channel':
+      setMemberNotificationChannel(interaction)
+      break
+    case 'moderator_alert_channel':
+      setModeratorAlertChannel(interaction)
+      break
+  }
 }
 
 module.exports = {
@@ -67,21 +96,28 @@ module.exports = {
       )
     )
     .addSubcommand(subcommand => subcommand
-      .setName('set_new_member_notif_channel')
-      .setDescription('Zet in welk kanaal je periodiek het aantal wil zien')
-      .addChannelOption(option => option
-        .setName('channel')
-        .setDescription('Zet in welk kanaal je periodiek het aantal wil zien')
-        .setRequired(true)
-      )
-    )
-    .addSubcommand(subcommand => subcommand
       .setName('clear_member_notif')
       .setDescription('Verwijder de periodieke notificatie van nieuwe leden')
     )
     .addSubcommand(subcommand => subcommand
       .setName('show')
       .setDescription('Toon alle custom settings')
+    )
+    .addSubcommand(subcommand => subcommand
+      .setName('set_channel_purpose')
+      .setDescription('Stel een kanaal in waar berichten naar gestuurd zullen worden')
+      .addStringOption(option => option
+        .setName('channel_purpose')
+        .setRequired(true)
+        .setDescription('Voor welke optie wil je het kanaal instellen?')
+        .addChoice('Gebruiker notificaties', 'member_notification_channel')
+        .addChoice('Moderator alerts', 'moderator_alert_channel')
+      )
+      .addChannelOption(option => option
+        .setName('channel')
+        .setDescription('Zet in welk kanaal je de berichten wil zien')
+        .setRequired(true)
+      )
     ),
   async execute (interaction) {
     if (!await verifyAdmin(interaction)) { return }
@@ -89,8 +125,8 @@ module.exports = {
     await defer(interaction)
 
     switch (interaction.options.getSubcommand()) {
-      case 'set_new_member_notif_channel':
-        await setMemberNotificationChannel(interaction)
+      case 'set_channel_purpose':
+        await setChannelPurpose(interaction)
         break
       case 'set_new_member_notif_number':
         await setMemberNotificationNumber(interaction)
