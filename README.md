@@ -44,7 +44,6 @@ You need a file to keep your bot token safely. You'll do this by creating a file
 - PREFIX = "bot prefix"
 - CLIENT_ID = "user id for the bot"
 - GUILD_ID = "The id for your test-server"
-- NOTIFICATION_CHANNEL_ID = "The id for a channel where periodic new member messages will be sent to"
 
 **Important note**: The GUILD_ID limits your instance of the bot to your server, but makes sure commands are updated instantly instead of using discords hourly cache. This property should be omitted for production builds!
 
