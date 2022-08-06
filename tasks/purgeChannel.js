@@ -3,35 +3,35 @@ const cron = require('cron')
 const log = require('../helpers/logger')
 const { getAllGuilds } = require('../helpers/guildData')
 const { Collection } = require('discord.js')
+const { PURGER_LIMITS } = require('../helpers/constants')
 
 const tasks = {}
 let _client
 
-const limit = 100 // 100 is the discord API limit SADFACE.JPG
+const limit = PURGER_LIMITS.API_FETCH_LIMIT
+const BulkDeleteMaxAge = PURGER_LIMITS.BULK_DELETE_MAX_AGE
 
-const twoWeeksInMilliSeconds = 14 * 24 * 60 * 60 * 1000
-
-const checkIndividual = (message, maxAge) => {
+function shouldDeleteMessage (message, maxAge) {
   const maxAgeInMilliSeconds = maxAge * 60 * 60 * 1000
   return !message.pinned &&
     message.createdAt < (new Date() - maxAgeInMilliSeconds)
 }
 
-const checkBulk = (message, maxAge) => {
+function canDeleteInBulk (message, maxAge) {
   const maxAgeInMilliSeconds = maxAge * 60 * 60 * 1000
   return !message.pinned &&
-    message.createdAt > (new Date() - twoWeeksInMilliSeconds) &&
+    message.createdAt > (new Date() - BulkDeleteMaxAge) &&
     message.createdAt < (new Date() - maxAgeInMilliSeconds)
 }
 
-const checkNonBulk = (message, maxAge) => {
+function shouldDeleteIndividually (message, maxAge) {
   const maxAgeInMilliSeconds = maxAge * 60 * 60 * 1000
   return !message.pinned &&
-    message.createdAt < (new Date() - twoWeeksInMilliSeconds) &&
+    message.createdAt < (new Date() - BulkDeleteMaxAge) &&
     message.createdAt < (new Date() - maxAgeInMilliSeconds)
 }
 
-const initPurgeChannelTasksAsync = async (client) => {
+async function initPurgeChannelTasksAsync (client) {
   _client = client
   const guildsData = await getAllGuilds()
   guildsData.forEach(guildData => {
@@ -43,7 +43,7 @@ const initPurgeChannelTasksAsync = async (client) => {
   })
 }
 
-const removePurgeChannelTask = (purger) => {
+function removePurgeChannelTask (purger) {
   if (!tasks[purger.channelId]) {
     return
   }
@@ -52,10 +52,10 @@ const removePurgeChannelTask = (purger) => {
   log.info(`stopped and removed Purge task on channel <#${purger.channelId}>. Its settings were: max ${purger.maxAge} hours - cronTime: ${purger.cronTime}`)
 }
 
-const addPurgerAndStartTask = (purger) => {
+function addPurgerAndStartTask (purger) {
   tasks[purger.channelId] = cron.job(
     purger.cronTime,
-    async () => {
+    async function () {
       try {
         const channelToPurge = await _client.channels.cache.find(channel => channel.id === purger.channelId)?.fetch()
         if (!channelToPurge) {
@@ -79,10 +79,10 @@ const addPurgerAndStartTask = (purger) => {
           lastFetchedMessageId = fetchedMessages.last().id
 
           // filter for bulk removal
-          const messagesToBulkDelete = fetchedMessages.filter(message => checkBulk(message, purger.maxAge))
+          const messagesToBulkDelete = fetchedMessages.filter(message => canDeleteInBulk(message, purger.maxAge))
 
           // add non bulk removable message to messagesToDelete
-          messagesToDeleteIndividually = messagesToDeleteIndividually.concat(fetchedMessages.filter(message => checkNonBulk(message, purger.maxAge)))
+          messagesToDeleteIndividually = messagesToDeleteIndividually.concat(fetchedMessages.filter(message => shouldDeleteIndividually(message, purger.maxAge)))
 
           // actually delete them
           const deletedMessages = await channelToPurge.bulkDelete(messagesToBulkDelete)
@@ -111,7 +111,7 @@ const addPurgerAndStartTask = (purger) => {
           }
 
           lastFetchedMessageId = fetchedMessages.last().id
-          const newMessagesToDelete = fetchedMessages.filter(message => checkIndividual(message, purger.maxAge))
+          const newMessagesToDelete = fetchedMessages.filter(message => shouldDeleteMessage(message, purger.maxAge))
 
           if (newMessagesToDelete.size > 0) {
             // if there are, add to the ToDelete list
@@ -141,10 +141,10 @@ const addPurgerAndStartTask = (purger) => {
 }
 
 // stop and start all PurgeChannelTasks not used atm, but could be useful eventually
-const stopAllPurgeChannelTasks = () => {
+function stopAllPurgeChannelTasks () {
   Object.values(tasks).forEach(task => task.stop())
 }
-const startAllPurgeChannelTasks = () => {
+function startAllPurgeChannelTasks () {
   Object.values(tasks).forEach(task => task.stop())
 }
 

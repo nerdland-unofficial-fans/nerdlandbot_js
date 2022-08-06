@@ -1,7 +1,7 @@
 const { initPurgeChannelTasksAsync, stopAllPurgeChannelTasks } = require('./purgeChannel')
 const log = require('../helpers/logger')
 
-const startTasksAsync = async client => {
+async function startTasksAsync (client) {
   try {
     await initPurgeChannelTasksAsync(client)
     log.info('Started all tasks')
@@ -11,7 +11,7 @@ const startTasksAsync = async client => {
 }
 
 // stopTasks not used atm, but could be useful eventually
-const stopTasks = () => {
+function stopTasks () {
   stopAllPurgeChannelTasks()
   log.info('Stopped all tasks')
 }

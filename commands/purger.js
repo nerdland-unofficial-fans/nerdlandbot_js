@@ -3,12 +3,13 @@ const { foemp } = require('../helpers/foemp')
 const { reply, defer } = require('../helpers/interactionHelper')
 const { verifyAdminAsync } = require('./admin')
 const { getGuild, saveGuild } = require('../helpers/guildData')
+const { CRON_REGEX_SYNTAX } = require('../helpers/constants')
 const { addPurgerAndStartTask, removePurgeChannelTask } = require('../tasks/purgeChannel')
 const { MessageEmbed } = require('discord.js')
 
-const cronSyntaxRegex = /(((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5}/
+const cronSyntaxRegex = CRON_REGEX_SYNTAX
 
-const addNewPurger = async interaction => {
+async function addNewPurger (interaction) {
   if (!await verifyAdminAsync(interaction)) { return }
 
   const cronTime = interaction.options.getString('cron_time') ?? '0 0 * * *'
@@ -41,7 +42,7 @@ const addNewPurger = async interaction => {
   await reply(interaction, `De purger is aangemaakt op kanaal ${channel}. max_age: ${maxAge} uur. \`${cronTime}\``)
 }
 
-const showAllPurgers = async interaction => {
+async function showAllPurgers (interaction) {
   if (!await verifyAdminAsync(interaction)) { return }
 
   const guild = await getGuild(interaction.guildId)
@@ -63,7 +64,7 @@ const showAllPurgers = async interaction => {
   await reply(interaction, { embeds: [embed] })
 }
 
-const removePurger = async interaction => {
+async function removePurger (interaction) {
   if (!await verifyAdminAsync(interaction)) { return }
   const channel = interaction.options.getChannel('channel') ?? interaction.channel
   const guild = await getGuild(interaction.guildId)

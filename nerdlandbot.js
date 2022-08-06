@@ -58,7 +58,7 @@ for (const file of commandFiles) {
   client.commands.set(command.data.name, command)
 }
 // Register commands
-(async () => {
+(async function () {
   try {
     log.info('Started refreshing application (/) commands!')
 
