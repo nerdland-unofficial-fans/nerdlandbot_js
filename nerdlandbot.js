@@ -8,6 +8,7 @@ const { Routes } = require('discord-api-types/v9')
 // Import helpers
 const log = require('./helpers/logger')
 const { foemp } = require('./helpers/foemp')
+const { startTasksAsync } = require('./tasks')
 const { getGuild } = require('./helpers/guildData')
 
 // Setup our environment variables via dotenv
@@ -57,7 +58,7 @@ for (const file of commandFiles) {
   client.commands.set(command.data.name, command)
 }
 // Register commands
-(async () => {
+(async function () {
   try {
     log.info('Started refreshing application (/) commands!')
 
@@ -81,8 +82,11 @@ for (const file of commandFiles) {
 })()
 
 // Notify progress
-client.on('ready', function (e) {
+client.on('ready', e => {
   log.info(`Logged in as ${client.user.tag}!`)
+
+  // start tasks
+  startTasksAsync(client) // no need to await
 })
 
 client.on('messageCreate', (message) => {
