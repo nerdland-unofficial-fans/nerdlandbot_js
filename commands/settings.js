@@ -5,7 +5,7 @@ const { verifyAdminAsync } = require('./admin')
 const { MessageEmbed } = require('discord.js')
 const { foemp } = require('../helpers/foemp')
 
-const setMemberNotificationChannel = async interaction => {
+async function setMemberNotificationChannel (interaction) {
   const channel = interaction.options.getChannel('channel')
   if (channel.isVoice()) {
     await reply(interaction, `Dit gaat niet want het is geen text kanaal, ${foemp(interaction)}!`)
@@ -21,7 +21,7 @@ const setMemberNotificationChannel = async interaction => {
   await reply(interaction, `Ok. Vanaf nu wordt bij elke schijf van ${guildData.memberNotificationNumber} gebruikers een melding geplaatst in het kanaal <#${guildData.memberNotificationChannelId}>.`)
 }
 
-const setMemberNotificationNumber = async interaction => {
+async function setMemberNotificationNumber (interaction) {
   const memberNotificationNumber = interaction.options.getInteger('number')
   const guildData = await getGuild(interaction.guild.id)
   guildData.memberNotificationNumber = memberNotificationNumber
@@ -33,14 +33,14 @@ const setMemberNotificationNumber = async interaction => {
   }
 }
 
-const clearMemberNotifications = async interaction => {
+async function clearMemberNotifications (interaction) {
   const guildData = await getGuild(interaction.guild.id)
   guildData.memberNotificationChannelId = ''
   await saveGuild(guildData)
   await reply(interaction, 'Ok. Er worden geen periodieke meldingen meer geplaatst van het aantal gebruikers.')
 }
 
-const showSettings = async interaction => {
+async function showSettings (interaction) {
   const guildData = await getGuild(interaction.guild.id)
   const embed = new MessageEmbed()
   const settings = [

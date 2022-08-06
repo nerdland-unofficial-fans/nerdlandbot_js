@@ -9,7 +9,7 @@ const configFolder = constants.GUILD_DATA
 const configCache = {}
 
 // create configs folder if it does not exist
-;(async () => {
+;(async function () {
   await fs.mkdir(configFolder).catch(err => {
     if (err.code !== 'EEXIST') {
       throw err

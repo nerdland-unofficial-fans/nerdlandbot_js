@@ -9,7 +9,7 @@ const { Routes } = require('discord-api-types/v9')
 const log = require('./helpers/logger')
 const { foemp } = require('./helpers/foemp')
 const { startTasksAsync } = require('./tasks')
-const { getGuild } = require('./helpers/guildData')
+const { onMemberJoinAsync } = require('./eventHandlers/onMemberJoin')
 
 // Setup our environment variables via dotenv
 require('dotenv').config()
@@ -121,19 +121,7 @@ client.on('interactionCreate', async interaction => {
 
 client.on('guildMemberAdd', async member => {
   try {
-    const guildData = await getGuild(member.guild.id)
-    if (!guildData.memberNotificationChannelId) {
-      return
-    }
-    const memberCount = (await member.guild.members.fetch()).filter(member => !member.user.bot).size
-    if (memberCount % guildData.memberNotificationNumber === 0) {
-      const notificationChannel = client.channels.cache?.find(channel => channel.id === guildData.memberNotificationChannelId)
-      if (!notificationChannel) {
-        log.error(`notification channel ${guildData.memberNotificationChannelId} not found on guild ${member.guild.id}`)
-        return
-      }
-      notificationChannel.send(`${member.guild.name} heeft nu ${memberCount} leden! Proficiat!`)
-    }
+    await onMemberJoinAsync(member, client)
   } catch (error) {
     log.error(error)
   }

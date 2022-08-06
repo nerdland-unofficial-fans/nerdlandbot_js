@@ -1,7 +1,7 @@
 const { getGuild } = require('../helpers/guildData')
 const log = require('../helpers/logger')
 
-const onMemberJoin = async (member, client) => {
+async function onMemberJoinAsync (member, client) {
   const memberCount = (await member.guild.members.fetch()).filter(member => !member.user.bot).size
   const guildData = await getGuild(member.guild.id)
   if (!guildData.memberNotificationChannelId) {
@@ -17,4 +17,4 @@ const onMemberJoin = async (member, client) => {
   }
 }
 
-module.exports = { onMemberJoin }
+module.exports = { onMemberJoinAsync }
