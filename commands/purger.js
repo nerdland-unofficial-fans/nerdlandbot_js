@@ -108,6 +108,10 @@ module.exports = {
       )
     ),
   async execute (interaction) {
+    if (!interaction.guild) {
+      await reply(interaction, 'Dit commando kan niet gebruikt worden in een priv\u00e9bericht, enkel het moderator commando kan hier gebruikt worden.')
+      return
+    }
     await defer(interaction, { ephemeral: true })
 
     switch (interaction.options.getSubcommand()) {

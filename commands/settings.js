@@ -46,7 +46,8 @@ async function showSettings (interaction) {
   const settings = [
     `\u2022 new_member_notif_number: ${guildData.memberNotificationNumber}`,
     `\u2022 new_member_notif_channel: <#${guildData.memberNotificationChannelId}>`,
-    `\u2022 moderator_alert_channel: <#${guildData.moderatorAlertChannelId}>`
+    `\u2022 moderator_alert_channel: <#${guildData.moderatorAlertChannelId}>`,
+    `\u2022 moderator_role_name: ${guildData.moderatorRoleId}`
   ]
   embed.setTitle('Settings: ')
   embed.setDescription(settings.join('\n'))
@@ -68,6 +69,15 @@ async function setModeratorAlertChannel (interaction) {
   guildData.moderatorAlertChannelId = channel.id
   await saveGuild(guildData)
   await reply(interaction, `Ok. Vanaf nu worden moderator alerts geplaatst in het kanaal <#${guildData.memberNotificationChannelId}>.`)
+}
+
+async function setModeratorRole (interaction) {
+  const moderatorRole = interaction.options.getRole('moderator_role')
+  const guildData = await getGuild(interaction.guild.id)
+
+  guildData.moderatorRoleId = moderatorRole.id
+  await saveGuild(guildData)
+  await reply(interaction, `Ok. De moderator rol is ingesteld als ${moderatorRole.name}.`)
 }
 
 async function setChannelPurpose (interaction) {
@@ -118,9 +128,22 @@ module.exports = {
         .setDescription('Zet in welk kanaal je de berichten wil zien')
         .setRequired(true)
       )
+    )
+    .addSubcommand(subcommand => subcommand
+      .setName('set_moderator_role')
+      .setDescription('Stel de naam van de moderator rol in.')
+      .addRoleOption(roleoption => roleoption
+        .setName('moderator_role')
+        .setRequired(true)
+        .setDescription('De naam van de moderator rol.')
+      )
     ),
   async execute (interaction) {
-    if (!await verifyAdmin(interaction)) { return }
+    if (!interaction.guild) {
+      await reply(interaction, 'Dit commando kan niet gebruikt worden in een priv\u00e9bericht, enkel het moderator commando kan hier gebruikt worden.')
+      return
+    }
+    if (!await verifyAdminAsync(interaction)) { return }
 
     await defer(interaction)
 
@@ -130,6 +153,9 @@ module.exports = {
         break
       case 'set_new_member_notif_number':
         await setMemberNotificationNumber(interaction)
+        break
+      case 'set_moderator_role':
+        await setModeratorRole(interaction)
         break
       case 'clear_member_notif':
         await clearMemberNotifications(interaction)

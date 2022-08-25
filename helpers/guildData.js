@@ -69,6 +69,7 @@ function initGuild (guild) {
   if (!guild.memberNotificationNumber) { guild.memberNotificationNumber = constants.DEFAULT_MEMBER_NOTIFICATION_NUMBER }
   if (!guild.memberNotificationChannelId) { guild.memberNotificationChannelId = '' }
   if (!guild.moderatorAlertChannelId) { guild.moderatorAlertChannelId = '' }
+  if (!guild.moderatorRoleId) { guild.moderatorRoleId = '' }
 }
 
 async function getAllGuilds () {

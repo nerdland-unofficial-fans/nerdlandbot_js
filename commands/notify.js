@@ -255,7 +255,6 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('list')
     .setDescription('lijst functionaliteit.')
-
     .addSubcommand(subcommand => subcommand
       .setName('add')
       .setDescription('Voeg een nieuwe lijst toe.')
@@ -326,6 +325,10 @@ module.exports = {
       .setDescription('Toon alle lijsten waar je op geabbonneerd bent')),
 
   async execute (interaction) {
+    if (!interaction.guild) {
+      await reply(interaction, 'Dit commando kan niet gebruikt worden in een priv\u00e9bericht, enkel het moderator commando kan hier gebruikt worden.')
+      return
+    }
     await defer(interaction)
     await reply(interaction, 'thinking...')
 
