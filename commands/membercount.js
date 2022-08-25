@@ -12,6 +12,10 @@ module.exports = {
       useroption.setName('channel').setDescription('van welk kanaal wil je het aantal zien [optioneel]')
     ),
   async execute (interaction) {
+    if (!interaction.guild) {
+      await reply(interaction, 'Dit commando kan niet gebruikt worden in een priv\u00e9bericht, enkel het moderator commando kan hier gebruikt worden.')
+      return
+    }
     await defer(interaction)
     const channel = interaction.options.getChannel('channel')
     const onlyShowOnline = interaction.options.getBoolean('online')
