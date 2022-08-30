@@ -33,7 +33,7 @@ async function listAdmins (interaction) {
   const memberManager = interaction.guild.members
   const admins = await memberManager.fetch({ user: guild.admins })
   let response = 'De bot admins voor deze server zijn:'
-  for (const [, admin] of admins) { response += `\n${admin.user.username}` }
+  for (const [, admin] of admins) { response += `\n${admin.displayName}` }
   await reply(interaction, response)
 }
 
@@ -42,26 +42,25 @@ async function addAdmin (interaction) {
   if (!await verifyAdmin(interaction)) { return }
 
   const user = interaction.options.getUser('target')
+  const member = await interaction.guild.members.fetch(user.id)
   const guild = await getGuild(interaction.guildId)
 
   // Error if the target already is a bot admin
   if (guild.admins.includes(user.id)) {
-    await reply(interaction, `${user.username} is al een bot admin, ${foemp(interaction)}!`)
+    await reply(interaction, `${member.displayName} is al een bot admin, ${foemp(interaction)}!`)
     return
   }
 
-  const member = await interaction.guild.members.fetch(user.id)
-
   // Error if the target already is a server admin
   if (member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
-    await reply(interaction, `${user.username} is al een server admin, het is niet nodig om hem/haar/helicopter ook bot admin te maken, ${foemp(interaction)}!`)
+    await reply(interaction, `${member.displayName} is al een server admin, het is niet nodig om hem/haar/helicopter ook bot admin te maken, ${foemp(interaction)}!`)
     return
   }
 
   // Promote the target to bot admin
   guild.admins.push(user.id)
   await saveGuild(guild)
-  await reply(interaction, `${user.username} is nu een bot admin.`)
+  await reply(interaction, `${member.displayName} is nu een bot admin.`)
 }
 
 async function removeAdmin (interaction) {
@@ -69,16 +68,17 @@ async function removeAdmin (interaction) {
   if (!await verifyAdmin(interaction)) { return }
 
   const user = interaction.options.getUser('target')
+  const member = await interaction.guild.members.fetch(user.id)
   const guild = await getGuild(interaction.guildId)
 
   // Error if the target is not a bot admin
   if (!guild.admins.includes(user.id)) {
-    await reply(interaction, `${user.username} is geen bot admin, ${foemp(interaction)}!`)
+    await reply(interaction, `${member.displayName} is geen bot admin, ${foemp(interaction)}!`)
     return
   }
 
   let question = ''
-  if (interaction.member.user.id === user.id) { question = 'Weet je zeker dat je je eigen bot admin rechten wilt intrekken?' } else { question = `Weet je zeker dat je de bot admin rechten van ${user.username} wilt intrekken?` }
+  if (interaction.member.user.id === user.id) { question = 'Weet je zeker dat je je eigen bot admin rechten wilt intrekken?' } else { question = `Weet je zeker dat je de bot admin rechten van ${member.displayName} wilt intrekken?` }
 
   // Confirm demotion
   const actions = new MessageActionRow().addComponents(
@@ -91,20 +91,20 @@ async function removeAdmin (interaction) {
       .setLabel('nee')
       .setStyle(BUTTON_STYLES.SECONDARY)
   )
-  await reply(interaction, { content: question, components: [actions] })
 
-  const followMsg = await interaction.fetchReply()
-  const followInteraction = await followMsg.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, componentType: 'BUTTON', time: DEFAULT_TIMEOUT })
+  const followMsg = await interaction.followUp({ content: question, components: [actions] })
+  const followInteraction = await followMsg.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, componentType: 'BUTTON', time: DEFAULT_TIMEOUT, ephemeral: true })
   await defer(followInteraction)
-  switch (interaction.customId) {
+  await reply(interaction, { content: question, components: [] })
+  switch (followInteraction.customId) {
     case 'no':
-      await reply(interaction, { content: `${user.username} mag bot admin blijven! Yay!`, components: [] })
+      await reply(followInteraction, { content: `${member.displayName} mag bot admin blijven! Yay!`, components: [] })
       break
     case 'yes':
       // Demote the bot admin to a regular user
       removeElementFromArray(guild.admins, user.id)
       await saveGuild(guild)
-      await reply(interaction, { content: `${user.username} is geen bot admin meer.`, components: [] })
+      await reply(followInteraction, { content: `${member.displayName} is geen bot admin meer.`, components: [] })
       break
   }
 }
