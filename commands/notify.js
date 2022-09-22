@@ -3,8 +3,8 @@ const { getGuild, saveGuild } = require('../helpers/guildData')
 const { foemp } = require('../helpers/foemp')
 const { reply, defer, sendToChannel } = require('../helpers/interactionHelper')
 const { verifyAdminAsync } = require('./admin')
-const { MessageEmbed, MessageActionRow, MessageSelectMenu } = require('discord.js')
-const { DEFAULT_TIMEOUT, EMBED_MAX_FIELD_LENGTH, DISCORD_MSG_MAX_LENGTH } = require('../helpers/constants')
+const { MessageEmbed } = require('discord.js')
+const { EMBED_MAX_FIELD_LENGTH, DISCORD_MSG_MAX_LENGTH } = require('../helpers/constants')
 const { getUserNameFromIdAsync, getTagFromId } = require('../helpers/userHelper')
 
 async function addNewList (interaction) {
@@ -13,7 +13,7 @@ async function addNewList (interaction) {
 
   // Parse arguments from command
   const guild = await getGuild(interaction.guildId)
-  const listName = interaction.options.getString('name')
+  const listName = interaction.options.getString('naam')
 
   // Check if list exists
   if (Object.keys(guild.notifyLists).map(notifyList => notifyList.toLowerCase()).includes(listName.toLowerCase())) {
@@ -24,6 +24,8 @@ async function addNewList (interaction) {
   // create list
   guild.notifyLists[listName] = []
   await saveGuild(guild)
+
+  // send user reply
   await reply(interaction, `De lijst ${listName} is aangemaakt!`)
 }
 
@@ -33,19 +35,7 @@ async function removeList (interaction) {
 
   // Parse command arguments
   const guild = await getGuild(interaction.guildId)
-  let listName = interaction.options.getString('name')
-
-  // if no argument was passed, request one
-  if (!listName) {
-    // return if the server has no lists to remove
-    if (Object.keys(guild.notifyLists).length === 0) {
-      await reply(interaction, 'Er zijn nog geen lijstjes gemaakt op deze server!')
-      return
-    }
-
-    // request listname from user
-    listName = await DisplayListSelector(interaction, guild, 'Selecteer een lijst om te verwijderen.')
-  }
+  const listName = interaction.options.getString('naam')
 
   // check if list exists
   if (!Object.keys(guild.notifyLists).includes(listName)) {
@@ -53,35 +43,39 @@ async function removeList (interaction) {
     return
   }
 
+  // delete the list
   delete guild.notifyLists[listName]
   await saveGuild(guild)
+
+  // send user reply
   await reply(interaction, `De lijst ${listName} is verwijderd!`)
 }
 
 async function renameList (interaction) {
+  // verify permissions
   if (!await verifyAdminAsync(interaction)) { return }
 
+  // parse command arguments
   const guild = await getGuild(interaction.guildId)
-  const oldName = interaction.options.getString('old')
-  const newName = interaction.options.getString('new')
+  const oldName = interaction.options.getString('naam')
+  const newName = interaction.options.getString('nieuwe_naam')
 
-  // if no valid argument was passed for oldName, request one
-  if (!oldName || !Object.keys(guild.notifyLists).includes(oldName)) {
-    // check if there are any lists to rename
-    if (Object.keys(guild.notifyLists).length === 0) {
-      await reply(interaction, 'Er zijn nog geen lijstjes gemaakt op deze server!')
-      return
-    }
-
-    if (!Object.keys(guild.notifyLists).includes(oldName)) {
-      await reply(interaction, `De lijst '${oldName}' bestaat niet, ${foemp(interaction)}!`)
-      return
-    }
+  // error if old name was not valid
+  if (!Object.keys(guild.notifyLists).includes(oldName)) {
+    await reply(interaction, `De lijst ${oldName} bestaat niet, ${foemp(interaction)}!`)
+    return
   }
 
-  // if no newName was passed, request one
+  // error if no new name was supplied
   if (!newName) {
-    await reply(interaction, `Je hebt geen nieuwe naam opgegeven voor '${oldName}', ${foemp(interaction)}!`)
+    await reply(interaction, `Je hebt geen nieuwe naam meegegeven, ${foemp(interaction)}!`)
+    return
+  }
+
+  // error if the new name already exists
+  if (Object.keys(guild.notifyLists).includes(newName)) {
+    await reply(interaction, `De lijst ${newName} bestaat al, ${foemp(interaction)}!`)
+    return
   }
 
   // update the lists
@@ -94,6 +88,7 @@ async function renameList (interaction) {
 }
 
 async function showAllLists (interaction) {
+  // get guild
   const guild = await getGuild(interaction.guildId)
 
   // Check for existence of lists
@@ -111,36 +106,14 @@ async function showAllLists (interaction) {
   embed.setTitle('Lijstjes')
   embed.setDescription(desc)
 
+  // send reply
   await reply(interaction, { content: ' ', embeds: [embed] })
 }
 
-async function DisplayListSelector (interaction, guild, question) {
-  const options = []
-  for (const list in guild.notifyLists) {
-    options.push({
-      label: list,
-      value: list
-    })
-  }
-
-  const actionRow = new MessageActionRow()
-    .addComponents(
-      new MessageSelectMenu()
-        .setCustomId('select')
-        .setPlaceholder('Kies een lijst...')
-        .addOptions(options)
-    )
-
-  const followMsg = await interaction.followUp({ content: question, components: [actionRow] })
-  const followInteraction = await followMsg.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, componentType: 'SELECT_MENU', time: DEFAULT_TIMEOUT, ephemeral: true })
-  const listName = followInteraction.values[0]
-  await followMsg.delete()
-  return listName
-}
-
 async function subList (interaction) {
+  // parse command arguments
   const guild = await getGuild(interaction.guildId)
-  const listName = interaction.options.getString('name')
+  const listName = interaction.options.getString('naam')
   const userId = interaction.member.user.id
 
   // check if list exists
@@ -164,8 +137,9 @@ async function subList (interaction) {
 }
 
 async function unsubList (interaction) {
+  // parse command arguments
   const guild = await getGuild(interaction.guildId)
-  const listName = interaction.options.getString('name')
+  const listName = interaction.options.getString('naam')
   const userId = interaction.member.user.id
 
   // check if list exists
@@ -192,8 +166,8 @@ async function unsubList (interaction) {
 async function notifyList (interaction) {
   const guild = await getGuild(interaction.guildId)
   const userId = interaction.member.user.id
-  const listName = interaction.options.getString('name')
-  const message = interaction.options.getString('message')
+  const listName = interaction.options.getString('naam')
+  const message = interaction.options.getString('bericht')
 
   // check if list exists
   if (!Object.keys(guild.notifyLists).includes(listName)) {
@@ -207,13 +181,14 @@ async function notifyList (interaction) {
     return
   }
 
+  // check to see if the list has any subscribers to notify
   const subscribers = guild.notifyLists[listName]
   if (subscribers.length === 0) {
     await reply(interaction, `Er is nog niemand ingeschreven op deze lijst, ${foemp()}!`)
     return
   }
 
-  // notify list
+  // build notification
   const botName = await getUserNameFromIdAsync(interaction, interaction.applicationId)
   const username = getTagFromId(userId)
   const tags = []
@@ -244,13 +219,56 @@ async function notifyList (interaction) {
     embed.addField('Bericht:', message)
   }
 
+  // send reply
   await reply(interaction, { content: ' ', embeds: [embed], components: [] })
+  // push tags to channel
   for (const content of tags) {
     await sendToChannel(interaction, content)
   }
 }
 
+async function addAutocompleteOptions (interaction) {
+  // fetch subcommand to autocomplete for
+  const subcommand = interaction.options.data.find(o => o.type === 'SUB_COMMAND')?.name
+  if (!subcommand) {
+    return
+  }
+
+  // get option to autocomplete
+  const focusedOption = interaction.options.getFocused(true)
+  const optionName = focusedOption.name
+  const optionValue = focusedOption.value
+
+  // Build options for option 'naam'
+  if (optionName === 'naam') {
+    const userId = interaction.member.user.id
+    const guild = await getGuild(interaction.guildId)
+    const lists = guild.notifyLists
+
+    let filter
+    if (subcommand === 'sub') {
+      filter = (name, subscribers) => (!optionValue || name.includes(optionValue)) && !subscribers.includes(userId)
+    } else if (subcommand === 'unsub') {
+      filter = (name, subscribers) => (!optionValue || name.includes(optionValue)) && subscribers.includes(userId)
+    } else {
+      filter = (name, _) => !optionValue || name.includes(optionValue)
+    }
+
+    const options = []
+    if (Object.keys(lists).length > 0) {
+      for (const [name, subscribers] of Object.entries(lists)) {
+        if (filter(name, subscribers)) {
+          options.push(({ name: name, value: name }))
+        }
+      }
+    }
+
+    await interaction.respond(options, null)
+  }
+}
+
 module.exports = {
+  addAutocompleteOptions: addAutocompleteOptions,
   data: new SlashCommandBuilder()
     .setName('list')
     .setDescription('lijst functionaliteit.')
@@ -259,7 +277,7 @@ module.exports = {
       .setName('add')
       .setDescription('Voeg een nieuwe lijst toe.')
       .addStringOption(stringoption => stringoption
-        .setName('name')
+        .setName('naam')
         .setDescription('De naam van de lijst om toe te voegen.')
         .setRequired(true)))
 
@@ -267,22 +285,21 @@ module.exports = {
       .setName('remove')
       .setDescription('Verwijder een bestaande lijst.')
       .addStringOption(stringoption => stringoption
-        .setName('name')
+        .setName('naam')
         .setDescription('De naam van de lijst om te verwijderen.')
-        .setRequired(false)))
+        .setRequired(true)
+        .setAutocomplete(true)))
 
-    // TODO it would be nice to make the parameters optional here,
-    // but at the time of writing it is not yet possible to request text input through a messageActionRow
-    // to ensure the new list name is set
     .addSubcommand(subcommand => subcommand
       .setName('rename')
       .setDescription('de naam van een lijst wijzigen.')
       .addStringOption(stringoption => stringoption
-        .setName('old')
+        .setName('naam')
         .setDescription('de lijst die je wenst te hernoemen.')
-        .setRequired(true))
+        .setRequired(true)
+        .setAutocomplete(true))
       .addStringOption(stringoption => stringoption
-        .setName('new')
+        .setName('nieuwe_naam')
         .setDescription('de nieuwe naam die je de lijst wil geven.')
         .setRequired(true)))
 
@@ -294,27 +311,32 @@ module.exports = {
       .setName('sub')
       .setDescription('Ontvang notificaties voor een lijst.')
       .addStringOption(stringoption => stringoption
-        .setName('name')
+        .setName('naam')
         .setDescription('De naam van de lijst om notificaties van te ontvangen')
-        .setRequired(true)))
+        .setRequired(true)
+        .setAutocomplete(true)))
 
     .addSubcommand(subcommand => subcommand
       .setName('unsub')
       .setDescription('Ontvang niet langer notificaties voor een lijst')
       .addStringOption(stringoption => stringoption
-        .setName('name')
+        .setName('naam')
         .setDescription('De naam van de lijst om niet langer notificaties van te ontvangen')
-        .setRequired(true)))
+        .setRequired(true)
+        .setAutocomplete(true)))
 
     .addSubcommand(subcommand => subcommand
       .setName('notify')
       .setDescription('Stuur een notificatie naar iedereen op een bepaalde lijst')
       .addStringOption(stringoption => stringoption
-        .setName('name')
-        .setDescription('De naam van de lijst waarvoor je een notificatie wilt sture.'))
+        .setName('naam')
+        .setDescription('De naam van de lijst waarvoor je een notificatie wilt sture.')
+        .setRequired(true)
+        .setAutocomplete(true))
       .addStringOption(stringoption => stringoption
-        .setName('message')
-        .setDescription('Het bericht dat je aan je notificatie wilt toevoegen'))),
+        .setName('bericht')
+        .setDescription('Het bericht dat je aan je notificatie wilt toevoegen')
+        .setRequired(false))),
 
   async execute (interaction) {
     await defer(interaction)
