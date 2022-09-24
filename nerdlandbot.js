@@ -77,8 +77,35 @@ for (const command of getAllCommandsSync()) {
   }
 })()
 
+// Helper functions for handlers
+async function executeCommand (interaction) {
+  const command = client.commands.get(interaction.commandName)
+  if (!command) {
+    return
+  }
+
+  try {
+    await command.execute(interaction)
+  } catch (error) {
+    log.error(error)
+    const reply = { content: `Da kennek nie ${foemp(interaction)}!`, ephemeral: true }
+    if (interaction.deferred || interaction.replied) {
+      await interaction.editReply(reply)
+    } else {
+      await interaction.reply(reply)
+    }
+  }
+}
+
+async function populateAutocomplete (interaction) {
+  const command = client.commands.get(interaction.commandName)
+  if (command?.addAutocompleteOptions) {
+    await command.addAutocompleteOptions(interaction)
+  }
+}
+
 // Notify progress
-client.on('ready', e => {
+client.on('ready', _ => {
   log.info(`Logged in as ${client.user.tag}!`)
 
   // start tasks
@@ -98,21 +125,10 @@ client.on('messageCreate', (message) => {
 })
 
 client.on('interactionCreate', async interaction => {
-  if (!interaction.isCommand()) return
-
-  const command = client.commands.get(interaction.commandName)
-  if (!command) return
-
-  try {
-    await command.execute(interaction)
-  } catch (error) {
-    log.error(error)
-    const reply = { content: `Da kennek nie ${foemp(interaction)}!`, ephemeral: true }
-    if (interaction.deferred || interaction.replied) {
-      await interaction.editReply(reply)
-    } else {
-      await interaction.reply(reply)
-    }
+  if (interaction.isCommand()) {
+    executeCommand(interaction)
+  } else if (interaction.isAutocomplete()) {
+    populateAutocomplete(interaction)
   }
 })
 
