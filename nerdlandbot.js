@@ -1,6 +1,4 @@
-
 // Import relevant classes from discord.js
-const fs = require('fs')
 const { Client, Intents, Collection } = require('discord.js')
 const { REST } = require('@discordjs/rest')
 const { Routes } = require('discord-api-types/v9')
@@ -10,6 +8,7 @@ const log = require('./helpers/logger')
 const { foemp } = require('./helpers/foemp')
 const { startTasksAsync } = require('./tasks')
 const { onMemberJoinAsync } = require('./eventHandlers/onMemberJoin')
+const { getAllCommandsSync } = require('./helpers/metadataHelper')
 
 // Setup our environment variables via dotenv
 require('dotenv').config()
@@ -50,9 +49,7 @@ const client = new Client({
 // Load commands
 const commands = []
 client.commands = new Collection()
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'))
-for (const file of commandFiles) {
-  const command = require(`./commands/${file}`)
+for (const command of getAllCommandsSync()) {
   commands.push(command.data.toJSON())
   client.commands.set(command.data.name, command)
 }
