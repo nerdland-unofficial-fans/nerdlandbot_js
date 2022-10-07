@@ -11,11 +11,13 @@ async function getAllCommands (excludedFiles) {
 
 function getAllCommandsSync (excludedFiles) {
   try {
-    return fs.readdirSync('./commands')
-      .filter(file => file.endsWith('.js') && (excludedFiles === undefined || !excludedFiles.includes(file)))
-      .map(file => require(`../commands/${file}`))
+    const cmds = fs.readdirSync('./commands')
+    const filtered = cmds.filter(file => file.endsWith('.js') && (excludedFiles === undefined || !excludedFiles.includes(file)))
+    const mapped = filtered.map(file => require(`../commands/${file}`))
+    return mapped
   } catch (err) {
     log.error(err)
+    return []
   }
 }
 

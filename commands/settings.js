@@ -1,17 +1,17 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
 const { reply, defer } = require('../helpers/interactionHelper')
-const { getGuild, saveGuild } = require('../helpers/guildData')
-const { verifyAdminAsync } = require('./admin')
-const { MessageEmbed } = require('discord.js')
+const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
+const { EmbedBuilder, PermissionsBitField } = require('discord.js')
 const { foemp } = require('../helpers/foemp')
+const { ChannelType } = require('discord-api-types/v9')
 
 async function setMemberNotificationChannel (interaction) {
   const channel = interaction.options.getChannel('channel')
-  if (channel.isVoice()) {
+  if (channel.type === ChannelType.GuildVoice) {
     await reply(interaction, `Dit gaat niet want het is geen text kanaal, ${foemp(interaction)}!`)
     return
   }
-  if (!channel.permissionsFor(interaction.guild.me).has(['SEND_MESSAGES'])) {
+  if (!channel.permissionsFor(interaction.commandGuildId).has([PermissionsBitField.Flags.SendMessages])) {
     await reply(interaction, `Dit gaat niet want ik heb geen rechten om berichten te sturen in dit kanaal, ${foemp(interaction)}!`)
     return
   }
@@ -42,7 +42,7 @@ async function clearMemberNotifications (interaction) {
 
 async function showSettings (interaction) {
   const guildData = await getGuild(interaction.guild.id)
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
   const settings = [
     `\u2022 new_member_notif_number: ${guildData.memberNotificationNumber}`,
     `\u2022 new_member_notif_channel: <#${guildData.memberNotificationChannelId}>`
@@ -84,7 +84,7 @@ module.exports = {
       .setDescription('Toon alle custom settings')
     ),
   async execute (interaction) {
-    if (!await verifyAdminAsync(interaction)) { return }
+    if (!await verifyAdmin(interaction)) { return }
 
     await defer(interaction)
 

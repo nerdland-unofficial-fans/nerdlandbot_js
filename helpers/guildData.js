@@ -3,6 +3,9 @@ const fs = require('fs').promises
 const path = require('path')
 const { readJson, writeJson } = require('./jsonStore')
 const constants = require('./constants')
+const { PermissionsBitField } = require('discord.js')
+const { reply } = require('./interactionHelper')
+const { removeElementFromArray } = require('./arrayHelper')
 
 // constants
 const configFolder = constants.GUILD_DATA
@@ -47,7 +50,7 @@ async function saveGuild (guildData) {
 }
 
 function createGuild (guildId) {
-  const guildData = { guildId: guildId }
+  const guildData = { guildId }
   initGuild(guildData)
   return guildData
 }
@@ -66,21 +69,50 @@ function initGuild (guild) {
   if (!guild.memberNotificationNumber) { guild.memberNotificationNumber = constants.DEFAULT_MEMBER_NOTIFICATION_NUMBER }
 }
 
+async function getAllGuilds () {
+  const guilds = []
+
+  const files = await fs.readdir(configFolder)
+
+  for (const file of files) {
+    const split = file.split('.')
+    if (split[1] === 'json') {
+      const guild = await getGuild(split[0])
+      guilds.push(guild)
+    }
+  }
+  return guilds
+}
+
+async function verifyAdmin (interaction) {
+  const user = interaction.member
+  const guild = await getGuild(interaction.guildId)
+
+  const isGuildAdmin = user.permissions.has(PermissionsBitField.Flags.Administrator)
+  const isBotAdmin = guild.admins.includes(user.id)
+
+  if (!isGuildAdmin && !isBotAdmin) {
+    await reply(interaction, 'https://gph.is/g/4w8PDNj')
+    return false
+  }
+  return true
+}
+
+async function AddAdminToGuild (guild, userId) {
+  guild.admins.push(userId)
+  await saveGuild(guild)
+}
+
+async function removeAdminFromGuild (guild, userId) {
+  removeElementFromArray(guild.admins, userId)
+  await saveGuild(guild)
+}
+
 module.exports = {
   getGuild,
   saveGuild,
-  getAllGuilds: async function () {
-    const guilds = []
-
-    const files = await fs.readdir(configFolder)
-
-    for (const file of files) {
-      const split = file.split('.')
-      if (split[1] === 'json') {
-        const guild = await getGuild(split[0])
-        guilds.push(guild)
-      }
-    }
-    return guilds
-  }
+  verifyAdmin,
+  AddAdminToGuild,
+  removeAdminFromGuild,
+  getAllGuilds
 }

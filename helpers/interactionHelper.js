@@ -1,5 +1,5 @@
 async function defer (interaction, options = { ephemeral: false }) {
-  if (interaction.isApplicationCommand() || interaction.isMessageComponent()) {
+  if (interaction.isCommand() || interaction.isMessageComponent()) {
     if (!interaction.deferred && !interaction.replied) {
       return await interaction.deferReply(options)
     }
@@ -7,7 +7,7 @@ async function defer (interaction, options = { ephemeral: false }) {
 }
 
 async function reply (interaction, response) {
-  if (interaction.isApplicationCommand() || interaction.isMessageComponent()) {
+  if (interaction.isCommand() || interaction.isMessageComponent()) {
     if (interaction.deferred || interaction.replied) {
       return await interaction.editReply(response)
     } else {
