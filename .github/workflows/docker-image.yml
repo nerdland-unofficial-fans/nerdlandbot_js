@@ -33,7 +33,7 @@ jobs:
         echo 'GUILD_ID=${{ secrets.GUILD_ID }}' >> .env
     
     - name: Build the Docker image
-      uses: docker/build-push-action@v3.1.1
+      uses: docker/build-push-action@v2
       with:
         context: .
         push: true
