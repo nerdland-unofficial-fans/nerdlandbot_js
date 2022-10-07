@@ -6,6 +6,8 @@ on:
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
+    environment: Testbot-wouter
+
     permissions:
       actions: read
       contents: read
@@ -27,10 +29,10 @@ jobs:
       shell: bash
       run: |
         touch .env
-        echo 'DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}' >> .env
-        echo 'PREFIX=${{ secrets.PREFIX }}' >> .env
-        echo 'CLIENT_ID=${{ secrets.CLIENT_ID }}' >> .env
-        echo 'GUILD_ID=${{ secrets.GUILD_ID }}' >> .env
+        echo DISCORD_TOKEN="${{ secrets.DISCORD_TOKEN }}" >> .env
+        echo PREFIX="${{ secrets.PREFIX }}" >> .env
+        echo CLIENT_ID="${{ secrets.CLIENT_ID }}" >> .env
+        echo GUILD_ID="${{ secrets.GUILD_ID }}" >> .env
         
     - name: Extract metadata (tags, labels) for Docker
       id: meta
