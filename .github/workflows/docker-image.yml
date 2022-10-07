@@ -7,8 +7,10 @@ jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
       packages: write
+      security-events: read
     
     steps:
     - name: checkout repo
