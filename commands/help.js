@@ -1,32 +1,29 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
 const { reply, defer } = require('../helpers/interactionHelper')
 const { getAllCommands, getAllCommandsSync } = require('../helpers/metadataHelper')
-const { MessageEmbed } = require('discord.js')
+const { EmbedBuilder } = require('discord.js')
 
 async function buildHelpContent () {
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
   embed.setTitle('commando\'s:')
   const commands = await getAllCommands()
-  for (const command of commands) {
-    embed.addField('/' + command.data.name, command.data.description)
-  }
+  embed.addFields(commands.map(c => ({ name: '/' + c.data.name, value: c.data.description })))
   return embed
 }
 
 async function buildDetailHelpContent (commandName) {
   const command = (await getAllCommands()).filter(c => c.data.name === commandName)[0]
 
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
   embed.setTitle(command.data.name)
   embed.setDescription(command.data.description)
 
   if (command.data.options.length > 0) {
-    for (const sub of command.data.options) {
-      // if the current option has no options array it is not a subcommand
-      if (!sub.options) { continue }
-      const subName = `/${command.data.name} ${sub.name}`
-      embed.addField(subName, sub.description)
-    }
+    embed.addFields(
+      command.data.options
+        .filter(o => o.options)
+        .map(o => ({ name: `/${command.data.name} ${o.name}`, value: o.description }))
+    )
   }
   return embed
 }
@@ -35,7 +32,7 @@ function buildChoices (option) {
   const commands = getAllCommandsSync(['help.js']).map(c => c.data.name)
   commands.push('help')
   for (const c of commands) {
-    option.addChoice(`${c}`, `${c}`)
+    option.addChoices({ name: c, value: c })
   }
 }
 

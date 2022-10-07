@@ -1,27 +1,27 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
 const { foemp } = require('../helpers/foemp')
 const { reply, defer } = require('../helpers/interactionHelper')
-const { verifyAdminAsync } = require('./admin')
-const { getGuild, saveGuild } = require('../helpers/guildData')
+const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
 const { CRON_REGEX_SYNTAX } = require('../helpers/constants')
 const { addPurgerAndStartTask, removePurgeChannelTask } = require('../tasks/purgeChannel')
-const { MessageEmbed } = require('discord.js')
+const { EmbedBuilder, PermissionsBitField } = require('discord.js')
+const { ChannelType } = require('discord-api-types/v9')
 
 const cronSyntaxRegex = CRON_REGEX_SYNTAX
 
 async function addNewPurger (interaction) {
-  if (!await verifyAdminAsync(interaction)) { return }
+  if (!await verifyAdmin(interaction)) { return }
 
   const cronTime = interaction.options.getString('cron_time') ?? '0 0 * * *'
   const maxAge = interaction.options.getInteger('max_age')
   const channel = interaction.options.getChannel('channel') ?? interaction.channel
   const guild = await getGuild(interaction.guildId)
 
-  if (channel.isVoice()) {
+  if (channel.type === ChannelType.GuildVoice) {
     await reply(interaction, `Dat kan niet voor een voicekanaal, ${foemp(interaction)}!`)
     return
   }
-  if (!channel.permissionsFor(interaction.guild.me).has(['MANAGE_MESSAGES'])) {
+  if (!channel.permissionsFor(interaction.commandGuildId).has([PermissionsBitField.Flags.SendMessages])) {
     await reply(interaction, `Dit gaat niet want ik heb geen rechten om berichten te wissen in dat kanaal, ${foemp(interaction)}!`)
     return
   }
@@ -43,7 +43,7 @@ async function addNewPurger (interaction) {
 }
 
 async function showAllPurgers (interaction) {
-  if (!await verifyAdminAsync(interaction)) { return }
+  if (!await verifyAdmin(interaction)) { return }
 
   const guild = await getGuild(interaction.guildId)
   // Check for existence of purgers
@@ -53,7 +53,7 @@ async function showAllPurgers (interaction) {
   }
 
   // build reply
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
   const embedContent = Object.values(guild.purgers).map(
     ({ maxAge, cronTime, channelId }) =>
       `\u2022 <#${channelId}> - max ${maxAge} uur. \`${cronTime}\` `
@@ -65,7 +65,7 @@ async function showAllPurgers (interaction) {
 }
 
 async function removePurger (interaction) {
-  if (!await verifyAdminAsync(interaction)) { return }
+  if (!await verifyAdmin(interaction)) { return }
   const channel = interaction.options.getChannel('channel') ?? interaction.channel
   const guild = await getGuild(interaction.guildId)
 

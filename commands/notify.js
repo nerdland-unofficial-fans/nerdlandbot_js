@@ -1,15 +1,14 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
-const { getGuild, saveGuild } = require('../helpers/guildData')
+const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
 const { foemp } = require('../helpers/foemp')
 const { reply, defer, sendToChannel } = require('../helpers/interactionHelper')
-const { verifyAdminAsync } = require('./admin')
-const { MessageEmbed } = require('discord.js')
+const { EmbedBuilder } = require('discord.js')
 const { EMBED_MAX_FIELD_LENGTH, DISCORD_MSG_MAX_LENGTH } = require('../helpers/constants')
 const { getUserNameFromIdAsync, getTagFromId } = require('../helpers/userHelper')
 
 async function addNewList (interaction) {
   // Verify permissions
-  if (!await verifyAdminAsync(interaction)) { return }
+  if (!await verifyAdmin(interaction)) { return }
 
   // Parse arguments from command
   const guild = await getGuild(interaction.guildId)
@@ -31,7 +30,7 @@ async function addNewList (interaction) {
 
 async function removeList (interaction) {
   // Verify permissions
-  if (!await verifyAdminAsync(interaction)) { return }
+  if (!await verifyAdmin(interaction)) { return }
 
   // Parse command arguments
   const guild = await getGuild(interaction.guildId)
@@ -53,7 +52,7 @@ async function removeList (interaction) {
 
 async function renameList (interaction) {
   // verify permissions
-  if (!await verifyAdminAsync(interaction)) { return }
+  if (!await verifyAdmin(interaction)) { return }
 
   // parse command arguments
   const guild = await getGuild(interaction.guildId)
@@ -98,7 +97,7 @@ async function showAllLists (interaction) {
   }
 
   // build reply
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
   let desc = ''
   for (const list in guild.notifyLists) {
     desc += `\u2022 ${list}\n`
@@ -212,11 +211,11 @@ async function notifyList (interaction) {
   }
 
   // build reply
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
   embed.setTitle(listName)
   embed.setDescription(`Ahem, Dit is ${botName} vanuit de montagekamer, willen de volgende personen zich op vraag van ${username} melden voor ${listName} a.u.b.`)
   if (message) {
-    embed.addField('Bericht:', message)
+    embed.addFields([{ name: 'Bericht:', value: message }])
   }
 
   // send reply
@@ -227,48 +226,7 @@ async function notifyList (interaction) {
   }
 }
 
-async function addAutocompleteOptions (interaction) {
-  // fetch subcommand to autocomplete for
-  const subcommand = interaction.options.data.find(o => o.type === 'SUB_COMMAND')?.name
-  if (!subcommand) {
-    return
-  }
-
-  // get option to autocomplete
-  const focusedOption = interaction.options.getFocused(true)
-  const optionName = focusedOption.name
-  const optionValue = focusedOption.value
-
-  // Build options for option 'naam'
-  if (optionName === 'naam') {
-    const userId = interaction.member.user.id
-    const guild = await getGuild(interaction.guildId)
-    const lists = guild.notifyLists
-
-    let filter
-    if (subcommand === 'sub') {
-      filter = (name, subscribers) => (!optionValue || name.includes(optionValue)) && !subscribers.includes(userId)
-    } else if (subcommand === 'unsub') {
-      filter = (name, subscribers) => (!optionValue || name.includes(optionValue)) && subscribers.includes(userId)
-    } else {
-      filter = (name, _) => !optionValue || name.includes(optionValue)
-    }
-
-    const options = []
-    if (Object.keys(lists).length > 0) {
-      for (const [name, subscribers] of Object.entries(lists)) {
-        if (filter(name, subscribers)) {
-          options.push(({ name: name, value: name }))
-        }
-      }
-    }
-
-    await interaction.respond(options, null)
-  }
-}
-
 module.exports = {
-  addAutocompleteOptions: addAutocompleteOptions,
   data: new SlashCommandBuilder()
     .setName('list')
     .setDescription('lijst functionaliteit.')

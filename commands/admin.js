@@ -1,24 +1,8 @@
-const { SlashCommandBuilder } = require('@discordjs/builders')
-const { Permissions, MessageActionRow, MessageButton } = require('discord.js')
-const { getGuild, saveGuild } = require('../helpers/guildData')
+const { PermissionsBitField, ButtonBuilder, ActionRowBuilder, ButtonStyle, SlashCommandBuilder, ComponentType } = require('discord.js')
+const { getGuild, verifyAdmin, AddAdminToGuild, removeAdminFromGuild } = require('../helpers/guildData')
 const { foemp } = require('../helpers/foemp')
 const { reply, defer } = require('../helpers/interactionHelper')
-const { removeElementFromArray } = require('../helpers/arrayHelper')
-const { BUTTON_STYLES, DEFAULT_TIMEOUT } = require('../helpers/constants')
-
-async function verifyAdmin (interaction) {
-  const user = interaction.member
-  const guild = await getGuild(interaction.guildId)
-
-  const isGuildAdmin = user.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
-  const isBotAdmin = guild.admins.includes(user.id)
-
-  if (!isGuildAdmin && !isBotAdmin) {
-    await reply(interaction, 'https://gph.is/g/4w8PDNj')
-    return false
-  }
-  return true
-}
+const { DEFAULT_TIMEOUT } = require('../helpers/constants')
 
 async function listAdmins (interaction) {
   const guild = await getGuild(interaction.guildId)
@@ -52,14 +36,13 @@ async function addAdmin (interaction) {
   }
 
   // Error if the target already is a server admin
-  if (member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
+  if (member.permissions.has(PermissionsBitField.Flags.Administrator)) {
     await reply(interaction, `${member.displayName} is al een server admin, het is niet nodig om hem/haar/helicopter ook bot admin te maken, ${foemp(interaction)}!`)
     return
   }
 
   // Promote the target to bot admin
-  guild.admins.push(user.id)
-  await saveGuild(guild)
+  await AddAdminToGuild(guild, user.id)
   await reply(interaction, `${member.displayName} is nu een bot admin.`)
 }
 
@@ -81,19 +64,19 @@ async function removeAdmin (interaction) {
   if (interaction.member.user.id === user.id) { question = 'Weet je zeker dat je je eigen bot admin rechten wilt intrekken?' } else { question = `Weet je zeker dat je de bot admin rechten van ${member.displayName} wilt intrekken?` }
 
   // Confirm demotion
-  const actions = new MessageActionRow().addComponents(
-    new MessageButton()
+  const actions = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
       .setCustomId('yes')
       .setLabel('Ja')
-      .setStyle(BUTTON_STYLES.DANGER),
-    new MessageButton()
+      .setStyle(ButtonStyle.Danger),
+    new ButtonBuilder()
       .setCustomId('no')
       .setLabel('nee')
-      .setStyle(BUTTON_STYLES.SECONDARY)
+      .setStyle(ButtonStyle.Secondary)
   )
 
   const followMsg = await interaction.followUp({ content: question, components: [actions] })
-  const followInteraction = await followMsg.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, componentType: 'BUTTON', time: DEFAULT_TIMEOUT, ephemeral: true })
+  const followInteraction = await followMsg.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, componentType: ComponentType.Button, time: DEFAULT_TIMEOUT, ephemeral: true })
   await defer(followInteraction)
   await reply(interaction, { content: question, components: [] })
   switch (followInteraction.customId) {
@@ -102,15 +85,13 @@ async function removeAdmin (interaction) {
       break
     case 'yes':
       // Demote the bot admin to a regular user
-      removeElementFromArray(guild.admins, user.id)
-      await saveGuild(guild)
+      await removeAdminFromGuild(guild, user.id)
       await reply(followInteraction, { content: `${member.displayName} is geen bot admin meer.`, components: [] })
       break
   }
 }
 
 module.exports = {
-  verifyAdminAsync: verifyAdmin,
 
   data: new SlashCommandBuilder()
     .setName('admins')

@@ -1,5 +1,5 @@
 // Import relevant classes from discord.js
-const { Client, Intents, Collection } = require('discord.js')
+const { Client, GatewayIntentBits, Collection } = require('discord.js')
 const { REST } = require('@discordjs/rest')
 const { Routes } = require('discord-api-types/v9')
 // Import commands
@@ -9,6 +9,7 @@ const { foemp } = require('./helpers/foemp')
 const { startTasksAsync } = require('./tasks')
 const { onMemberJoinAsync } = require('./eventHandlers/onMemberJoin')
 const { getAllCommandsSync } = require('./helpers/metadataHelper')
+const { addAutocompleteOptions } = require('./helpers/autoCompleteHelper')
 
 // Setup our environment variables via dotenv
 require('dotenv').config()
@@ -39,17 +40,18 @@ const rest = new REST({ version: '9' }).setToken(DISCORD_TOKEN)
 // Instantiate a new client with some necessary parameters.
 const client = new Client({
   intents: [
-    Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_MESSAGES,
-    Intents.FLAGS.GUILD_MEMBERS,
-    Intents.FLAGS.GUILD_PRESENCES,
-    Intents.FLAGS.GUILD_VOICE_STATES
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildPresences,
+    GatewayIntentBits.GuildVoiceStates
   ]
 })
 // Load commands
 const commands = []
 client.commands = new Collection()
-for (const command of getAllCommandsSync()) {
+const cmds = getAllCommandsSync()
+for (const command of cmds) {
   commands.push(command.data.toJSON())
   client.commands.set(command.data.name, command)
 }
@@ -98,10 +100,7 @@ async function executeCommand (interaction) {
 }
 
 async function populateAutocomplete (interaction) {
-  const command = client.commands.get(interaction.commandName)
-  if (command?.addAutocompleteOptions) {
-    await command.addAutocompleteOptions(interaction)
-  }
+  addAutocompleteOptions(interaction)
 }
 
 // Notify progress
