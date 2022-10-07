@@ -1,0 +1,36 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ release ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout repo
+      uses: action/checkout@v3
+      
+    - name: login to dockerhub
+      uses: docker/login-action@v2.0.0
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      
+    - name: add .env
+      shell: bash
+      run: |
+        touch .env
+        echo 'DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}' >> .env
+        echo 'PREFIX=${{ secrets.PREFIX }} >> .env
+        echo 'CLIENT_ID=${{ secrets.CLIENT_ID }}' >> .env
+        echo 'GUILD_ID=${{ secrets.GUILD_ID }}' >> .env
+    
+    - name: Build the Docker image
+      uses: docker/build-push-action@v3.1.1
+      with:
+        context: .
+        push: true
+        tags: 'nerdlandbot-git'
+        labels: 'eva en wouter'
