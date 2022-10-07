@@ -37,5 +37,3 @@ jobs:
       with:
         context: .
         push: true
-        tags: 'nerdlandbot-git'
-        labels: 'eva en wouter'
