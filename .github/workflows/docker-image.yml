@@ -6,15 +6,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
+    
     steps:
     - name: checkout repo
-      uses: action/checkout@v3.1.0
-      with:
-        repository: nerdland-unofficial-fans/nerdlandbot_js
+      uses: action/checkout@v2
       
     - name: login to dockerhub
       uses: docker/login-action@v2.0.0
