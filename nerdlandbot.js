@@ -61,7 +61,7 @@ for (const command of cmds) {
     log.info('Started refreshing application (/) commands!')
 
     // if a GUILD ID for a test server is defined, we should use the applicationGuildCommands routes as it updates the commands instantly
-    if (GUILD_ID === undefined) {
+    if (!GUILD_ID) {
       await rest.put(
         Routes.applicationCommands(CLIENT_ID),
         { body: commands }
