@@ -48,3 +48,13 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         
+    - name: Pull and run the docker image
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.DEPLOYMENT_SERVER_IP }}
+        username: ${{ secrets.DEPLOYMENT_SERVER_uSER }}
+        key: ${{ secrets.DEPLOYMENT_sERVER_PK }}
+        script: |
+          cd /home/github/nerdlandbot_js
+          sudo docker-compose pull && sudo docker-compose up -d
+        
