@@ -1,8 +1,9 @@
+const { ApplicationCommandOptionType } = require('discord.js')
 const { getGuild } = require('../helpers/guildData')
 
 async function addAutocompleteOptions (interaction) {
   switch (interaction.commandName) {
-    case 'notify':
+    case 'list':
       await addNotifyAutoCompleteOptions(interaction)
       break
   }
@@ -10,7 +11,7 @@ async function addAutocompleteOptions (interaction) {
 
 async function addNotifyAutoCompleteOptions (interaction) {
   // fetch subcommand to autocomplete for
-  const subcommand = interaction.options.data.find(o => o.type === 'SUB_COMMAND')?.name
+  const subcommand = interaction.options.data.find(o => o.type === ApplicationCommandOptionType.Subcommand)?.name
   if (!subcommand) {
     return
   }
