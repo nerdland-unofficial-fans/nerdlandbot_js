@@ -21,7 +21,7 @@ async function addNewPurger (interaction) {
     await reply(interaction, `Dat kan niet voor een voicekanaal, ${foemp(interaction)}!`)
     return
   }
-  if (!channel.permissionsFor(interaction.commandGuildId).has([PermissionsBitField.Flags.SendMessages])) {
+  if (!channel.permissionsFor(interaction.commandGuildId).has([PermissionsBitField.Flags.ManageMessages])) {
     await reply(interaction, `Dit gaat niet want ik heb geen rechten om berichten te wissen in dat kanaal, ${foemp(interaction)}!`)
     return
   }
