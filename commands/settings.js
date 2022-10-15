@@ -11,7 +11,7 @@ async function setMemberNotificationChannel (interaction) {
     await reply(interaction, `Dit gaat niet want het is geen text kanaal, ${foemp(interaction)}!`)
     return
   }
-  if (!channel.permissionsFor(interaction.commandGuildId).has([PermissionsBitField.Flags.SendMessages])) {
+  if (!channel.permissionsFor(interaction.applicationId).has([PermissionsBitField.Flags.SendMessages])) {
     await reply(interaction, `Dit gaat niet want ik heb geen rechten om berichten te sturen in dit kanaal, ${foemp(interaction)}!`)
     return
   }
