@@ -1,11 +1,15 @@
-
 // Import relevant classes from discord.js
-const fs = require('fs');
-const { Client, Intents, Collection } = require('discord.js')
+const { Client, GatewayIntentBits, Collection } = require('discord.js')
 const { REST } = require('@discordjs/rest')
 const { Routes } = require('discord-api-types/v9')
 // Import commands
-const { pingPrefix } = require('./commands/ping')
+// Import helpers
+const log = require('./helpers/logger')
+const { foemp } = require('./helpers/foemp')
+const { startTasksAsync } = require('./tasks')
+const { onMemberJoinAsync } = require('./eventHandlers/onMemberJoin')
+const { getAllCommandsSync } = require('./helpers/metadataHelper')
+const { addAutocompleteOptions } = require('./helpers/autoCompleteHelper')
 
 // Setup our environment variables via dotenv
 require('dotenv').config()
@@ -13,83 +17,127 @@ require('dotenv').config()
 const PREFIX = process.env.PREFIX
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN
 const CLIENT_ID = process.env.CLIENT_ID
+const GUILD_ID = process.env.GUILD_ID
 
 if (PREFIX) {
-  console.log("Start bot with prefix '" + PREFIX + "'")
+  log.info(`Start bot with prefix '${PREFIX}'.`)
 } else {
-  throw new Error('Please provide a PREFIX in your .env file')
+  const err = new Error('Failed to start bot! No PREFIX found in .env file.')
+  log.error(err)
+  throw err
 }
 
 if (CLIENT_ID) {
-  console.log("Start bot with client id '" + CLIENT_ID + "'")
+  log.info(`Start bot with client id '${CLIENT_ID}'.`)
 } else {
-  throw new Error('Please provide a CLIENT_ID in your .env file')
+  const err = new Error('Failed to start bot! No CLIENT_ID found in .env file.')
+  log.error(err)
+  throw err
 }
 
 const rest = new REST({ version: '9' }).setToken(DISCORD_TOKEN)
 
 // Instantiate a new client with some necessary parameters.
-const client = new Client(
-  { intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] }
-);
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildPresences,
+    GatewayIntentBits.GuildVoiceStates
+  ]
+})
 // Load commands
-const commands = [];
-client.commands = new Collection();
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-for (const file of commandFiles) {
-	const command = require(`./commands/${file}`);
-	commands.push(command.data.toJSON());
+const commands = []
+client.commands = new Collection()
+const cmds = getAllCommandsSync()
+for (const command of cmds) {
+  commands.push(command.data.toJSON())
   client.commands.set(command.data.name, command)
 }
 // Register commands
-(async () => {
+(async function () {
   try {
-    console.log('Started refreshing application (/) commands!')
+    log.info('Started refreshing application (/) commands!')
 
-    await rest.put(
-      Routes.applicationCommands(CLIENT_ID),
-      { body: commands }
-    )
+    // if a GUILD ID for a test server is defined, we should use the applicationGuildCommands routes as it updates the commands instantly
+    if (!GUILD_ID) {
+      await rest.put(
+        Routes.applicationCommands(CLIENT_ID),
+        { body: commands }
+      )
+    } else {
+      await rest.put(
+        Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
+        { body: commands }
+      )
+    }
 
-    console.log('Successfully reloaded application (/) commands.')
+    log.info('Successfully reloaded application (/) commands.')
   } catch (error) {
-    console.error(error)
+    log.error(error)
   }
 })()
 
+// Helper functions for handlers
+async function executeCommand (interaction) {
+  const command = client.commands.get(interaction.commandName)
+  if (!command) {
+    return
+  }
+
+  try {
+    await command.execute(interaction)
+  } catch (error) {
+    log.error(error)
+    const reply = { content: `Da kennek nie ${foemp(interaction)}!`, ephemeral: true }
+    if (interaction.deferred || interaction.replied) {
+      await interaction.editReply(reply)
+    } else {
+      await interaction.reply(reply)
+    }
+  }
+}
+
+async function populateAutocomplete (interaction) {
+  addAutocompleteOptions(interaction)
+}
+
 // Notify progress
-client.on('ready', function (e) {
-  console.log(`Logged in as ${client.user.tag}!`)
+client.on('ready', _ => {
+  log.info(`Logged in as ${client.user.tag}!`)
+
+  // start tasks
+  startTasksAsync(client) // no need to await
 })
 
 client.on('messageCreate', (message) => {
   if (!message.author.bot && message.content.startsWith(PREFIX)) {
-    const messageParts = message.content.substring(PREFIX.length).split(' ')
-    const command = messageParts[0].toLowerCase()
-    processCommand(message, command)
+    const replyText = 'Hallo!\n' +
+      'Het bot team is enthousiast om mee te delen dat we een stevige update hebben doorgevoerd!\n' +
+      'Vanaf nu gebruikt onze bot niet langer de verouderde text commands, maar zijn we overgeschakeld op de in discord geintegreerde slash commands.\n' +
+      'Je kan deze gebruiken door te beginnen met een / te typen, en discord zal dan automatisch aanvullen met de beschikbare opties.\n' +
+      'Indien je een overzichtje wilt van enkel de opties van de nerdlandbot, kan je alvast `/help` gebruiken!'
+
+    message.reply(replyText)
   }
 })
 
 client.on('interactionCreate', async interaction => {
-  if (!interaction.isCommand()) {
-    return
+  if (interaction.isCommand()) {
+    executeCommand(interaction)
+  } else if (interaction.isAutocomplete()) {
+    populateAutocomplete(interaction)
   }
-  const { commandName } = interaction
-  await processCommand(interaction, commandName)
 })
 
-async function processCommand (interaction, commandName) {
-  // interaction can be an interaction and a message
-  const command = client.commands.get(commandName);
-  
-	if (!command) return;
-
+client.on('guildMemberAdd', async member => {
   try {
-    await command.execute(interaction);
+    await onMemberJoinAsync(member, client)
   } catch (error) {
-    console.error(error);
-    await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+    log.error(error)
   }
-}
+})
+
 // Authenticate
 client.login(process.env.DISCORD_TOKEN)

@@ -4,7 +4,7 @@
   "description": "A discord bot for the nNerdland community",
   "main": "nerdlandbot.js",
   "scripts": {
-    "test": "standard && echo \"Error: no test specified\" && exit 1"
+    "test": "standard && echo \"standard-js analysis found no issues!\" && exit 0"
   },
   "repository": {
     "type": "git",
@@ -13,11 +13,15 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@discordjs/builders": "^0.12.0",
-    "@discordjs/rest": "^0.3.0",
-    "discord-api-types": "^0.27.2",
-    "discord.js": "^13.6.0",
-    "dotenv": "^16.0.0"
+    "@discordjs/builders": "^1.2.0",
+    "@discordjs/rest": "^1.2.0",
+    "cron": "^2.1.0",
+    "@js-joda/core": "^5.4.0",
+    "@js-joda/timezone": "^2.12.0",
+    "discord-api-types": "^0.37.11",
+    "discord.js": "^14.5.0",
+    "dotenv": "^16.0.0",
+    "winston": "^3.8.2"
   },
   "devDependencies": {
     "standard": "*"
