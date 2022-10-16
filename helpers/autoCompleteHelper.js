@@ -29,11 +29,11 @@ async function addNotifyAutoCompleteOptions (interaction) {
 
     let filter
     if (subcommand === 'sub') {
-      filter = (name, subscribers) => (!optionValue || name.includes(optionValue)) && !subscribers.includes(userId)
+      filter = (name, subscribers) => (!optionValue || name.toLowerCase().includes(optionValue.toLowerCase())) && !subscribers.includes(userId)
     } else if (subcommand === 'unsub') {
-      filter = (name, subscribers) => (!optionValue || name.includes(optionValue)) && subscribers.includes(userId)
+      filter = (name, subscribers) => (!optionValue || name.toLowerCase().includes(optionValue.toLowerCase())) && subscribers.includes(userId)
     } else {
-      filter = (name, _) => !optionValue || name.includes(optionValue)
+      filter = (name, _) => !optionValue || name.toLowerCase().includes(optionValue.toLowerCase())
     }
 
     const options = []
