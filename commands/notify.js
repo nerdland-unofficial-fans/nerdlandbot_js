@@ -89,21 +89,18 @@ async function renameList (interaction) {
 async function showAllLists (interaction) {
   // get guild
   const guild = await getGuild(interaction.guildId)
+  const listNames = Object.keys(guild.notifyLists)
 
   // Check for existence of lists
-  if (Object.keys(guild.notifyLists).length === 0) {
+  if (listNames.length === 0) {
     await reply(interaction, 'Er zijn nog geen lijstjes gemaakt op deze server!')
     return
   }
 
   // build reply
   const embed = new EmbedBuilder()
-  let desc = ''
-  for (const list in guild.notifyLists) {
-    desc += `\u2022 ${list}\n`
-  }
-  embed.setTitle('Lijstjes')
-  embed.setDescription(desc)
+    .setTitle('Lijstjes')
+    .setDescription(listNames.sort().map(list=>`\u2022 ${list}`).join('\n'))
 
   // send reply
   await reply(interaction, { content: ' ', embeds: [embed] })
@@ -239,6 +236,7 @@ async function showSubscriptions (interaction) {
   const subscriptions = allLists
     .filter(arr=>arr[1].includes(userId))
     .map(arr=>arr[0])
+    .sort()
   if(subscriptions.length === 0) {
     await reply(interaction, 'Je bent op geen enkele lijst ingeschreven!')
     return
