@@ -45,7 +45,7 @@ async function addNotifyAutoCompleteOptions (interaction) {
       }
     }
 
-    await interaction.respond(options, null)
+    await interaction.respond(options.sort(), null)
   }
 }
 
