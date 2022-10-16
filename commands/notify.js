@@ -100,7 +100,7 @@ async function showAllLists (interaction) {
   // build reply
   const embed = new EmbedBuilder()
     .setTitle('Lijstjes')
-    .setDescription(listNames.sort().map(list=>`\u2022 ${list}`).join('\n'))
+    .setDescription(listNames.sort().map(list => `\u2022 ${list}`).join('\n'))
 
   // send reply
   await reply(interaction, { content: ' ', embeds: [embed] })
@@ -227,17 +227,17 @@ async function showSubscriptions (interaction) {
   const guild = await getGuild(interaction.guildId)
   const userId = interaction.member.user.id
   const allLists = Object.entries(guild.notifyLists)
-  if(allLists.length === 0){
+  if (allLists.length === 0) {
     await reply(interaction, 'Er zijn nog geen lijstjes gemaakt op deze server!')
     return
   }
 
   // filter subscribed lists
   const subscriptions = allLists
-    .filter(arr=>arr[1].includes(userId))
-    .map(arr=>arr[0])
+    .filter(arr => arr[1].includes(userId))
+    .map(arr => arr[0])
     .sort()
-  if(subscriptions.length === 0) {
+  if (subscriptions.length === 0) {
     await reply(interaction, 'Je bent op geen enkele lijst ingeschreven!')
     return
   }
@@ -245,7 +245,7 @@ async function showSubscriptions (interaction) {
   // build reply
   const embed = new EmbedBuilder()
     .setTitle('Jouw subscriptions:')
-    .setDescription(subscriptions.map(list =>`\u2022 ${list}`).join('\n'))
+    .setDescription(subscriptions.map(list => `\u2022 ${list}`).join('\n'))
 
   // send reply
   await reply(interaction, { content: ' ', embeds: [embed] })
