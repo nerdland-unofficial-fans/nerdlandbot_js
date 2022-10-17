@@ -1,8 +1,8 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js')
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, ChannelType } = require('discord.js')
 const { getGuild } = require('../helpers/guildData')
 const { foemp } = require('../helpers/foemp')
-const { reply, defer, sendToChannel } = require('../helpers/interactionHelper')
+const { reply, defer } = require('../helpers/interactionHelper')
 const { EMBED_MAX_FIELD_LENGTH, DEFAULT_TIMEOUT } = require('../helpers/constants')
 
 async function alertModerator (interaction) {
@@ -36,9 +36,10 @@ async function alertModerator (interaction) {
   }
 
   // check whether moderator role is set and still exists
+  const nerdlandGuild = client.guilds.cache.get(serverId)
   let modMessage = ''
   if (moderatorRoleId !== '') {
-    const moderatorRole = await interaction.guild.roles.cache.find(role => role.id === moderatorRoleId)
+    const moderatorRole = await nerdlandGuild.roles.cache.find(role => role.id === moderatorRoleId)
     if (moderatorRole) {
       modMessage += `${moderatorRole}\n`
     }
@@ -72,7 +73,6 @@ async function alertModerator (interaction) {
   const followInteraction = await followMsg.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, componentType: ComponentType.Button, time: DEFAULT_TIMEOUT })
   await defer(followInteraction)
   await reply(interaction, { content: ' ', components: [] })
-  followMsg.delete()
 
   switch (followInteraction.customId) {
     case 'no':
@@ -84,6 +84,9 @@ async function alertModerator (interaction) {
       await moderatorAlertChannel.send(modMessage)
       await moderatorAlertChannel.send({ embeds: [modEmbed] })
       break
+  }
+  if (!interaction.channel.type === ChannelType.DM) {
+    followMsg.delete()
   }
   // } catch (error) {
   //   console.log(error)
