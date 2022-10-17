@@ -1,9 +1,8 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
 const { reply, defer } = require('../helpers/interactionHelper')
 const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
-const { EmbedBuilder, PermissionsBitField } = require('discord.js')
+const { EmbedBuilder, PermissionsBitField, ChannelType } = require('discord.js')
 const { foemp } = require('../helpers/foemp')
-const { ChannelType } = require('discord-api-types/v9')
 
 async function setMemberNotificationChannel (interaction) {
   const channel = interaction.options.getChannel('channel')
@@ -57,18 +56,18 @@ async function showSettings (interaction) {
 
 async function setModeratorAlertChannel (interaction) {
   const channel = interaction.options.getChannel('channel')
-  if (channel.isVoice()) {
+  if (channel.type === ChannelType.GuildVoice) {
     await reply(interaction, `Dit gaat niet want het is geen text kanaal, ${foemp(interaction)}!`)
     return
   }
-  if (!channel.permissionsFor(interaction.guild.me).has(['SEND_MESSAGES'])) {
+  if (!channel.permissionsFor(interaction.applicationId).has([PermissionsBitField.Flags.SendMessages])) {
     await reply(interaction, `Dit gaat niet want ik heb geen rechten om berichten te sturen in dit kanaal, ${foemp(interaction)}!`)
     return
   }
   const guildData = await getGuild(interaction.guild.id)
   guildData.moderatorAlertChannelId = channel.id
   await saveGuild(guildData)
-  await reply(interaction, `Ok. Vanaf nu worden moderator alerts geplaatst in het kanaal <#${guildData.memberNotificationChannelId}>.`)
+  await reply(interaction, `Ok. Vanaf nu worden moderator alerts geplaatst in het kanaal <#${guildData.moderatorAlertChannelId}>.`)
 }
 
 async function setModeratorRole (interaction) {
@@ -120,8 +119,8 @@ module.exports = {
         .setName('channel_purpose')
         .setRequired(true)
         .setDescription('Voor welke optie wil je het kanaal instellen?')
-        .addChoice('Gebruiker notificaties', 'member_notification_channel')
-        .addChoice('Moderator alerts', 'moderator_alert_channel')
+        .addChoices({ name: 'Gebruiker notificaties', value: 'member_notification_channel' },
+          { name: 'Moderator alerts', value: 'moderator_alert_channel' })
       )
       .addChannelOption(option => option
         .setName('channel')
@@ -143,7 +142,7 @@ module.exports = {
       await reply(interaction, 'Dit commando kan niet gebruikt worden in een priv\u00e9bericht, enkel het moderator commando kan hier gebruikt worden.')
       return
     }
-    if (!await verifyAdminAsync(interaction)) { return }
+    if (!await verifyAdmin(interaction)) { return }
 
     await defer(interaction)
 
