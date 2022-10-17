@@ -1,9 +1,9 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
-const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js')
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js')
 const { getGuild } = require('../helpers/guildData')
 const { foemp } = require('../helpers/foemp')
 const { reply, defer, sendToChannel } = require('../helpers/interactionHelper')
-const { EMBED_MAX_FIELD_LENGTH, DEFAULT_TIMEOUT, BUTTON_STYLES } = require('../helpers/constants')
+const { EMBED_MAX_FIELD_LENGTH, DEFAULT_TIMEOUT } = require('../helpers/constants')
 
 async function alertModerator (interaction) {
   const serverId = process.env.NERDLAND_SERVER_ID
@@ -23,7 +23,7 @@ async function alertModerator (interaction) {
   }
 
   // check whether channel still exists
-  const moderatorAlertChannel = await client.channels.cache.find(channel => channel.id === moderatorAlertChannelId)?.fetch()
+  const moderatorAlertChannel = await client.channels.cache.get(moderatorAlertChannelId)
   if (!moderatorAlertChannel) {
     await reply(interaction, 'Ik kan het kanaal niet vinden om een bericht naar de moderators te sturen.')
     return
@@ -45,41 +45,42 @@ async function alertModerator (interaction) {
   }
   modMessage += `${interaction.user} heeft een bericht gestuurd:`
 
-  const modEmbed = new MessageEmbed()
-  modEmbed.addField('\u2800', message)
+  const modEmbed = new EmbedBuilder()
+  modEmbed.addFields([{ name: '\u2800', value: message }])
   // build confirmation embed
-  const confirmationEmbed = new MessageEmbed()
-  confirmationEmbed.addField('Je gaat dit bericht naar de moderators sturen:', message)
+  const confirmationEmbed = new EmbedBuilder()
+  confirmationEmbed.addFields([{ name: 'Je gaat dit bericht naar de moderators sturen:', value: message }])
   confirmationEmbed.setFooter({
     text: 'Bevat het alle informatie die nodig is? Bijvoorbeeld: het kanaal, de gebruikers en een beschrijving van het incident.'
   })
 
   // Confirm message sent
-  const actions = new MessageActionRow().addComponents(
-    new MessageButton()
+  const actions = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
       .setCustomId('yes')
       .setLabel('Ja')
-      .setStyle(BUTTON_STYLES.DANGER),
-    new MessageButton()
+      .setStyle(ButtonStyle.Danger),
+    new ButtonBuilder()
       .setCustomId('no')
-      .setLabel('Nee')
-      .setStyle(BUTTON_STYLES.SECONDARY)
+      .setLabel('nee')
+      .setStyle(ButtonStyle.Secondary)
   )
 
-  const confirmationMessage = await reply(interaction, { content: ' ', embeds: [confirmationEmbed], components: [actions], ephemeral: true })
-
-  const followMsg = await interaction.fetchReply()
+  const followMsg = await interaction.followUp({ content: ' ', embeds: [confirmationEmbed], components: [actions], ephemeral: true })
 
   // try {
-  const followInteraction = await followMsg.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, componentType: 'BUTTON', time: DEFAULT_TIMEOUT })
-  confirmationMessage.delete()
+  const followInteraction = await followMsg.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, componentType: ComponentType.Button, time: DEFAULT_TIMEOUT })
+  await defer(followInteraction)
+  await reply(interaction, { content: ' ', components: [] })
+  followMsg.delete()
+
   switch (followInteraction.customId) {
     case 'no':
       // TODO: edit original message and delete embed there?
-      await reply(interaction, 'Het bericht is niet verstuurd.')
+      await reply(followInteraction, 'Het bericht is niet verstuurd.')
       break
     case 'yes':
-      await sendToChannel(interaction, 'Het bericht is verstuurd.')
+      await reply(followInteraction, 'Het bericht is verstuurd.')
       await moderatorAlertChannel.send(modMessage)
       await moderatorAlertChannel.send({ embeds: [modEmbed] })
       break
