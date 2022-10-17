@@ -89,21 +89,18 @@ async function renameList (interaction) {
 async function showAllLists (interaction) {
   // get guild
   const guild = await getGuild(interaction.guildId)
+  const listNames = Object.keys(guild.notifyLists)
 
   // Check for existence of lists
-  if (Object.keys(guild.notifyLists).length === 0) {
+  if (listNames.length === 0) {
     await reply(interaction, 'Er zijn nog geen lijstjes gemaakt op deze server!')
     return
   }
 
   // build reply
   const embed = new EmbedBuilder()
-  let desc = ''
-  for (const list in guild.notifyLists) {
-    desc += `\u2022 ${list}\n`
-  }
-  embed.setTitle('Lijstjes')
-  embed.setDescription(desc)
+    .setTitle('Lijstjes')
+    .setDescription(listNames.sort().map(list => `\u2022 ${list}`).join('\n'))
 
   // send reply
   await reply(interaction, { content: ' ', embeds: [embed] })
@@ -226,6 +223,34 @@ async function notifyList (interaction) {
   }
 }
 
+async function showSubscriptions (interaction) {
+  const guild = await getGuild(interaction.guildId)
+  const userId = interaction.member.user.id
+  const allLists = Object.entries(guild.notifyLists)
+  if (allLists.length === 0) {
+    await reply(interaction, 'Er zijn nog geen lijstjes gemaakt op deze server!')
+    return
+  }
+
+  // filter subscribed lists
+  const subscriptions = allLists
+    .filter(arr => arr[1].includes(userId))
+    .map(arr => arr[0])
+    .sort()
+  if (subscriptions.length === 0) {
+    await reply(interaction, 'Je bent op geen enkele lijst ingeschreven!')
+    return
+  }
+
+  // build reply
+  const embed = new EmbedBuilder()
+    .setTitle('Jouw subscriptions:')
+    .setDescription(subscriptions.map(list => `\u2022 ${list}`).join('\n'))
+
+  // send reply
+  await reply(interaction, { content: ' ', embeds: [embed] })
+}
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('list')
@@ -294,7 +319,11 @@ module.exports = {
       .addStringOption(stringoption => stringoption
         .setName('bericht')
         .setDescription('Het bericht dat je aan je notificatie wilt toevoegen')
-        .setRequired(false))),
+        .setRequired(false)))
+
+    .addSubcommand(subcommand => subcommand
+      .setName('subscriptions')
+      .setDescription('Toon alle lijsten waar je op geabbonneerd bent')),
 
   async execute (interaction) {
     await defer(interaction)
@@ -321,6 +350,9 @@ module.exports = {
         break
       case 'notify':
         await notifyList(interaction)
+        break
+      case 'subscriptions':
+        await showSubscriptions(interaction)
         break
     }
   }
