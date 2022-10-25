@@ -1,5 +1,7 @@
 const { ApplicationCommandOptionType } = require('discord.js')
 const { getGuild } = require('../helpers/guildData')
+const { caseInsensitiveSort } = require('./sortHelper')
+const { stringIncludes } = require('./stringHelper')
 
 async function addAutocompleteOptions (interaction) {
   switch (interaction.commandName) {
@@ -29,23 +31,35 @@ async function addNotifyAutoCompleteOptions (interaction) {
 
     let filter
     if (subcommand === 'sub') {
-      filter = (name, subscribers) => (!optionValue || name.toLowerCase().includes(optionValue.toLowerCase())) && !subscribers.includes(userId)
+      filter = (name, subscribers) => (!optionValue || stringIncludes(name, optionValue, false)) && !subscribers.includes(userId)
     } else if (subcommand === 'unsub') {
-      filter = (name, subscribers) => (!optionValue || name.toLowerCase().includes(optionValue.toLowerCase())) && subscribers.includes(userId)
+      filter = (name, subscribers) => (!optionValue || stringIncludes(name, optionValue, false)) && subscribers.includes(userId)
     } else {
-      filter = (name, _) => !optionValue || name.toLowerCase().includes(optionValue.toLowerCase())
+      filter = (name, _) => !optionValue || stringIncludes(name, optionValue, false)
     }
 
-    const options = []
-    if (Object.keys(lists).length > 0) {
-      for (const [name, subscribers] of Object.entries(lists)) {
-        if (filter(name, subscribers)) {
-          options.push(({ name, value: name }))
-        }
+    // check for data
+    const entries = Object.entries(lists)
+    if (entries.length === 0) {
+      await interaction.respond(null)
+      return
+    }
+
+    // filter data
+    const filteredLists = []
+    for (const [name, subscribers] of entries) {
+      if (filter(name, subscribers)) {
+        filteredLists.push(name)
       }
     }
 
-    await interaction.respond(options.sort(), null)
+    // sort data
+    const options = filteredLists
+      .sort(caseInsensitiveSort)
+      .map(name => ({ name, value: name }))
+
+    // return data
+    await interaction.respond(options)
   }
 }
 
