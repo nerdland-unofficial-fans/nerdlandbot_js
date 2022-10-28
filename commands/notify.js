@@ -5,6 +5,8 @@ const { reply, defer, sendToChannel } = require('../helpers/interactionHelper')
 const { EmbedBuilder } = require('discord.js')
 const { EMBED_MAX_FIELD_LENGTH, DISCORD_MSG_MAX_LENGTH } = require('../helpers/constants')
 const { getUserNameFromIdAsync, getTagFromId } = require('../helpers/userHelper')
+const { caseInsensitiveSort } = require('../helpers/sortHelper')
+const { arrayIncludesString } = require('../helpers/arrayHelper')
 
 async function addNewList (interaction) {
   // Verify permissions
@@ -13,9 +15,10 @@ async function addNewList (interaction) {
   // Parse arguments from command
   const guild = await getGuild(interaction.guildId)
   const listName = interaction.options.getString('naam')
+  const listNames = Object.keys(guild.notifyLists)
 
   // Check if list exists
-  if (Object.keys(guild.notifyLists).map(notifyList => notifyList.toLowerCase()).includes(listName.toLowerCase())) {
+  if (arrayIncludesString(listNames, listName, false)) {
     await reply(interaction, `De lijst '${listName}' bestaat al, ${foemp(interaction)}!`)
     return
   }
@@ -35,9 +38,10 @@ async function removeList (interaction) {
   // Parse command arguments
   const guild = await getGuild(interaction.guildId)
   const listName = interaction.options.getString('naam')
+  const listNames = Object.keys(guild.notifyLists)
 
   // check if list exists
-  if (!Object.keys(guild.notifyLists).includes(listName)) {
+  if (!arrayIncludesString(listNames, listName, false)) {
     await reply(interaction, `De lijst ${listName} bestaat niet, ${foemp(interaction)}!`)
     return
   }
@@ -58,9 +62,10 @@ async function renameList (interaction) {
   const guild = await getGuild(interaction.guildId)
   const oldName = interaction.options.getString('naam')
   const newName = interaction.options.getString('nieuwe_naam')
+  const listNames = Object.keys(guild.notifyLists)
 
   // error if old name was not valid
-  if (!Object.keys(guild.notifyLists).includes(oldName)) {
+  if (!arrayIncludesString(listNames, oldName, false)) {
     await reply(interaction, `De lijst ${oldName} bestaat niet, ${foemp(interaction)}!`)
     return
   }
@@ -72,7 +77,7 @@ async function renameList (interaction) {
   }
 
   // error if the new name already exists
-  if (Object.keys(guild.notifyLists).includes(newName)) {
+  if (arrayIncludesString(listNames, newName, false)) {
     await reply(interaction, `De lijst ${newName} bestaat al, ${foemp(interaction)}!`)
     return
   }
@@ -89,21 +94,23 @@ async function renameList (interaction) {
 async function showAllLists (interaction) {
   // get guild
   const guild = await getGuild(interaction.guildId)
+  const listNames = Object.keys(guild.notifyLists)
 
   // Check for existence of lists
-  if (Object.keys(guild.notifyLists).length === 0) {
+  if (listNames.length === 0) {
     await reply(interaction, 'Er zijn nog geen lijstjes gemaakt op deze server!')
     return
   }
 
   // build reply
+  const desc = listNames
+    .sort(caseInsensitiveSort)
+    .map(list => `\u2022 ${list}`)
+    .join('\n')
+
   const embed = new EmbedBuilder()
-  let desc = ''
-  for (const list in guild.notifyLists) {
-    desc += `\u2022 ${list}\n`
-  }
-  embed.setTitle('Lijstjes')
-  embed.setDescription(desc)
+    .setTitle('Lijstjes')
+    .setDescription(desc)
 
   // send reply
   await reply(interaction, { content: ' ', embeds: [embed] })
@@ -114,9 +121,10 @@ async function subList (interaction) {
   const guild = await getGuild(interaction.guildId)
   const listName = interaction.options.getString('naam')
   const userId = interaction.member.user.id
+  const listNames = Object.keys(guild.notifyLists)
 
   // check if list exists
-  if (!Object.keys(guild.notifyLists).includes(listName)) {
+  if (!arrayIncludesString(listNames, listName, false)) {
     await reply(interaction, `De lijst ${listName} bestaat niet, ${foemp()}!`)
     return
   }
@@ -140,9 +148,10 @@ async function unsubList (interaction) {
   const guild = await getGuild(interaction.guildId)
   const listName = interaction.options.getString('naam')
   const userId = interaction.member.user.id
+  const listNames = Object.keys(guild.notifyLists)
 
   // check if list exists
-  if (!Object.keys(guild.notifyLists).includes(listName)) {
+  if (!arrayIncludesString(listNames, listName, false)) {
     await reply(interaction, `De lijst ${listName} bestaat niet, ${foemp()}!`)
     return
   }
@@ -167,9 +176,10 @@ async function notifyList (interaction) {
   const userId = interaction.member.user.id
   const listName = interaction.options.getString('naam')
   const message = interaction.options.getString('bericht')
+  const listNames = Object.keys(guild.notifyLists)
 
   // check if list exists
-  if (!Object.keys(guild.notifyLists).includes(listName)) {
+  if (!arrayIncludesString(listNames, listName, false)) {
     await reply(interaction, `De lijst ${listName} bestaat niet, ${foemp()}!`)
     return
   }
@@ -224,6 +234,34 @@ async function notifyList (interaction) {
   for (const content of tags) {
     await sendToChannel(interaction, content)
   }
+}
+
+async function showSubscriptions (interaction) {
+  const guild = await getGuild(interaction.guildId)
+  const userId = interaction.member.user.id
+  const allLists = Object.entries(guild.notifyLists)
+  if (allLists.length === 0) {
+    await reply(interaction, 'Er zijn nog geen lijstjes gemaakt op deze server!')
+    return
+  }
+
+  // filter subscribed lists
+  const subscriptions = allLists
+    .filter(arr => arr[1].includes(userId))
+    .map(arr => arr[0])
+    .sort(caseInsensitiveSort)
+  if (subscriptions.length === 0) {
+    await reply(interaction, 'Je bent op geen enkele lijst ingeschreven!')
+    return
+  }
+
+  // build reply
+  const embed = new EmbedBuilder()
+    .setTitle('Jouw subscriptions:')
+    .setDescription(subscriptions.map(list => `\u2022 ${list}`).join('\n'))
+
+  // send reply
+  await reply(interaction, { content: ' ', embeds: [embed] })
 }
 
 module.exports = {
@@ -294,7 +332,11 @@ module.exports = {
       .addStringOption(stringoption => stringoption
         .setName('bericht')
         .setDescription('Het bericht dat je aan je notificatie wilt toevoegen')
-        .setRequired(false))),
+        .setRequired(false)))
+
+    .addSubcommand(subcommand => subcommand
+      .setName('subscriptions')
+      .setDescription('Toon alle lijsten waar je op geabbonneerd bent')),
 
   async execute (interaction) {
     await defer(interaction)
@@ -321,6 +363,9 @@ module.exports = {
         break
       case 'notify':
         await notifyList(interaction)
+        break
+      case 'subscriptions':
+        await showSubscriptions(interaction)
         break
     }
   }
