@@ -105,7 +105,12 @@ Volgende week is het aan ${upcomingGames}`
 }
 
 async function addFreeGamesNotifierAndStartTask (channelId) {
-  cron.job(FREE_GAMES_CRON, () => checkGames(channelId), undefined, true)
+  tasks[channelId] = cron.job(
+    FREE_GAMES_CRON,
+    () => checkGames(channelId),
+    undefined,
+    true
+  )
   log.info(
     `added new FreeGamesNotifier task to channel <#${channelId}> with cronTime: ${FREE_GAMES_CRON}`
   )
@@ -114,12 +119,16 @@ async function addFreeGamesNotifierAndStartTask (channelId) {
 async function removeFreeGamesNotifierTask () {}
 
 function stopAllFreeGamesTasks () {
-  // TODO: remove
-  console.log(tasks)
+  Object.values(tasks).forEach((task) => task.stop())
+}
+
+function startAllFreeGamesTasks () {
+  Object.values(tasks).forEach((task) => task.start())
 }
 
 module.exports = {
   initFreeGamesTasksAsync,
+  startAllFreeGamesTasks,
   stopAllFreeGamesTasks,
   removeFreeGamesNotifierTask
 }
