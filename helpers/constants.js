@@ -11,6 +11,7 @@ module.exports = {
   CRON_REGEX_SYNTAX: /(((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5}/,
   // Cron for every friday at noon
   FREE_GAMES_CRON: '0 19 * * 5',
-  FREE_GAMES_URL:
-    'https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?country=BE'
+  EPIC_GAMES_API_URL:
+    'https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?country=BE',
+  EPIC_GAMES_STORE_BASE_URL: 'https://www.epicgames.com/store/en-US/p/'
 }
