@@ -1,12 +1,7 @@
 const cron = require('cron')
 const axios = require('axios')
-const {
-  DateTimeFormatter,
-  LocalDate,
-  ZonedDateTime
-} = require('@js-joda/core')
+const { ZonedDateTime } = require('@js-joda/core')
 
-const formatter = DateTimeFormatter.ofPattern('M/d/yyyy')
 const { getAllGuilds } = require('../helpers/guildData')
 const log = require('../helpers/logger')
 const { FREE_GAMES_CRON, FREE_GAMES_URL } = require('../helpers/constants')
@@ -76,14 +71,12 @@ async function checkGames (channelId) {
     { currentGames: [], upcomingGames: [] }
   )
 
-  console.log(result, null, 2)
-
-  // allGames
-  //   .forEach(async (game) => {
-  //     channel.send(
-  //       `**${game.title}** is gratis te downloaden op de Epic Games Store!`
-  //     );
-  //   });
+  games
+    .forEach(async (game) => {
+      channel.send(
+        `**${game}** is gratis te downloaden op de Epic Games Store!`
+      )
+    })
 }
 
 async function addFreeGamesNotifierAndStartTask (channelId) {
@@ -96,9 +89,13 @@ async function addFreeGamesNotifierAndStartTask (channelId) {
 
 async function removeFreeGamesNotifierTask () {}
 
-function stopAllFreeGamesTasks () {}
+function stopAllFreeGamesTasks () {
+  // TODO: remove
+  console.log(tasks)
+}
 
 module.exports = {
   initFreeGamesTasksAsync,
-  stopAllFreeGamesTasks
+  stopAllFreeGamesTasks,
+  removeFreeGamesNotifierTask
 }
