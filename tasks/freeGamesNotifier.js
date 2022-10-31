@@ -1,10 +1,14 @@
 const cron = require('cron')
 const axios = require('axios')
 const { ZonedDateTime } = require('@js-joda/core')
-
+const { EmbedBuilder } = require('discord.js')
 const { getAllGuilds } = require('../helpers/guildData')
 const log = require('../helpers/logger')
-const { FREE_GAMES_CRON, FREE_GAMES_URL } = require('../helpers/constants')
+const {
+  FREE_GAMES_CRON,
+  EPIC_GAMES_API_URL,
+  EPIC_GAMES_STORE_BASE_URL
+} = require('../helpers/constants')
 const { discordTime } = require('../helpers/DateTimeHelper.js')
 
 const tasks = {}
@@ -26,7 +30,7 @@ async function checkGames (channelId) {
     ?.fetch()
 
   // Get list of free games from Epic Games Store
-  const allGames = (await axios.get(FREE_GAMES_URL))?.data?.data?.Catalog
+  const allGames = (await axios.get(EPIC_GAMES_API_URL))?.data?.data?.Catalog
     ?.searchStore?.elements
 
   if (!allGames) {
@@ -36,7 +40,7 @@ async function checkGames (channelId) {
 
   const games = allGames.reduce(
     (acc, currentGame) => {
-      const { title, promotions, price } = currentGame
+      const { title, description, promotions, price, keyImages } = currentGame
       const now = discordTime()
 
       let startDate =
@@ -52,8 +56,12 @@ async function checkGames (channelId) {
         endDate = ZonedDateTime.parse(endDate)
         const isFree = price?.totalPrice?.discountPrice === 0
         if (isFree && startDate.isBefore(now) && endDate.isAfter(now)) {
-          // channel.send(`Free game alert! ${title} is free!`);
-          acc.currentGames.push(title)
+          const pageSlug = currentGame.catalogNs.mappings?.[0]?.pageSlug
+          const url = EPIC_GAMES_STORE_BASE_URL + pageSlug
+          const thumbnail =
+            keyImages.find((image) => image.type === 'Thumbnail')?.url ||
+            keyImages[0].url
+          acc.currentGames.push({ title, url, description, thumbnail })
           return acc
         }
       }
@@ -71,16 +79,32 @@ async function checkGames (channelId) {
     { currentGames: [], upcomingGames: [] }
   )
 
-  games
-    .forEach(async (game) => {
-      channel.send(
-        `**${game}** is gratis te downloaden op de Epic Games Store!`
-      )
-    })
+  const embeds = games.currentGames.map(
+    ({ title, description, url, thumbnail }) => {
+      const embed = new EmbedBuilder()
+      embed
+        .setTitle(title)
+        .setURL(url)
+        .setDescription(description)
+        .setThumbnail(thumbnail)
+      return embed
+    }
+  )
+
+  const upcomingGames = games.upcomingGames
+    .map((title) => `**${title}**`)
+    .join(' en ')
+
+  const content = `Er zijn weer gratis games beschikbaar op de Epic Games Store!
+Volgende week is het aan ${upcomingGames}`
+
+  await channel.send({
+    content,
+    embeds
+  })
 }
 
 async function addFreeGamesNotifierAndStartTask (channelId) {
-  checkGames(channelId)
   cron.job(FREE_GAMES_CRON, () => checkGames(channelId), undefined, true)
   log.info(
     `added new FreeGamesNotifier task to channel <#${channelId}> with cronTime: ${FREE_GAMES_CRON}`
