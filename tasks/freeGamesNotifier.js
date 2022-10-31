@@ -29,14 +29,14 @@ async function checkGames (channelId) {
     .find((channel) => channel.id === channelId)
     ?.fetch()
 
-  // Get list of free games from Epic Games Store
-  const allGames = (await axios.get(EPIC_GAMES_API_URL))?.data?.data?.Catalog
-    ?.searchStore?.elements
-
-  if (!allGames) {
-    log.error('Error getting free games list from Epic Games Store')
-    return
-  }
+  let allGames
+  try {
+    allGames = (await axios.get(EPIC_GAMES_API_URL))?.data?.data?.Catalog
+      ?.searchStore?.elements
+    if (!allGames) {
+      throw new Error('Error getting free games list from Epic Games Store')
+    }
+  } catch (error) {}
 
   const games = allGames.reduce(
     (acc, currentGame) => {
