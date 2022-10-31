@@ -10,5 +10,5 @@ module.exports = {
     BULK_DELETE_MAX_AGE: 14 * 24 * 60 * 60 * 1000 // 2 weeks in milliseconds
   },
   CRON_REGEX_SYNTAX: /(((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5}/,
-  WOMBATS_DIR_NAME: 'wombats',
+  WOMBATS_DIR_NAME: 'wombats'
 }
