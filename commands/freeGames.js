@@ -10,6 +10,7 @@ async function addNewFreeGamesNotifier (interaction) {
   if (!await verifyAdmin(interaction)) { return }
 
   const channel = interaction.options.getChannel('channel') ?? interaction.channel
+  const listName = interaction.options.getString('list')
   const guild = await getGuild(interaction.guildId)
 
   if (channel.type === ChannelType.GuildVoice) {
@@ -22,9 +23,9 @@ async function addNewFreeGamesNotifier (interaction) {
     return
   }
 
-  guild.freeGamesChecker = channel.id
+  guild.freeGamesChecker = { channelId: channel.id, listName }
   await saveGuild(guild)
-  addFreeGamesNotifierAndStartTask(channel.id)
+  addFreeGamesNotifierAndStartTask(guild.id, guild.freeGamesChecker)
   await reply(interaction, `De gratis games melder is aangemaakt op kanaal ${channel}.`)
 }
 
@@ -39,7 +40,7 @@ async function showFreeGamesNotifier (interaction) {
 
   // build reply
   const embed = new EmbedBuilder()
-  const embedContent = `\u2022 <#${guild.freeGamesChecker}>`
+  const embedContent = `\u2022 <#${guild.freeGamesChecker.channelId}> met lijst **${guild.freeGamesChecker.listName}**`
   embed.setTitle('Gratis games melder')
   embed.setDescription(embedContent)
 
@@ -50,7 +51,7 @@ async function removeFreeGamesNotifier (interaction) {
   if (!await verifyAdmin(interaction)) { return }
   const guild = await getGuild(interaction.guildId)
 
-  removeFreeGamesNotifierTask(interaction.freeGamesChecker)
+  removeFreeGamesNotifierTask(interaction.guildId)
   delete guild.freeGamesChecker
   await saveGuild(guild)
   await reply(interaction, 'De gratis games melder is gestopt en verwijderd.')
@@ -66,6 +67,8 @@ module.exports = {
       .addChannelOption(option =>
         option.setName('channel').setDescription('Op welk kanaal wil je de melder toevoegen? [optioneel, standaard wordt het huidige kanaal gekozen]')
       )
+      .addStringOption(option =>
+        option.setName('list').setDescription('Welke lijst wil je gebruiken?').setAutocomplete(true))
     )
     .addSubcommand(subcommand => subcommand
       .setName('show')

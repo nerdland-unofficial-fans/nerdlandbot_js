@@ -2,7 +2,7 @@ const cron = require('cron')
 const axios = require('axios')
 const { ZonedDateTime } = require('@js-joda/core')
 const { EmbedBuilder } = require('discord.js')
-const { getAllGuilds } = require('../helpers/guildData')
+const { getAllGuilds, getGuild } = require('../helpers/guildData')
 const log = require('../helpers/logger')
 const {
   FREE_GAMES_CRON,
@@ -10,6 +10,7 @@ const {
   EPIC_GAMES_STORE_BASE_URL
 } = require('../helpers/constants')
 const { discordTime } = require('../helpers/DateTimeHelper.js')
+const { getNotifyTags } = require('../helpers/getNotifyTags')
 
 const tasks = {}
 let _client
@@ -19,12 +20,15 @@ async function initFreeGamesTasksAsync (client) {
   const guildsData = await getAllGuilds()
   guildsData.forEach((guildData) => {
     if (guildData.freeGamesChecker) {
-      addFreeGamesNotifierAndStartTask(guildData.freeGamesChecker)
+      addFreeGamesNotifierAndStartTask(
+        guildData.guildId,
+        guildData.freeGamesChecker
+      )
     }
   })
 }
 
-async function checkGames (channelId) {
+async function checkGames (guildId, channelId, listName) {
   const channel = await _client.channels.cache
     .find((channel) => channel.id === channelId)
     ?.fetch()
@@ -98,25 +102,46 @@ async function checkGames (channelId) {
   const content = `Er zijn weer gratis games beschikbaar op de Epic Games Store!
 Volgende week is het aan ${upcomingGames}`
 
+  const { notifyLists } = await getGuild(guildId)
+
+  if (listName) {
+    try {
+      const tags = await getNotifyTags(notifyLists, listName)
+      await channel.send({ content: `${tags}` })
+    } catch (error) {
+      log.error(error)
+    }
+  }
+
   await channel.send({
     content,
     embeds
   })
 }
 
-async function addFreeGamesNotifierAndStartTask (channelId) {
-  tasks[channelId] = cron.job(
+async function addFreeGamesNotifierAndStartTask (
+  guildId,
+  { channelId, listName }
+) {
+  tasks[guildId] = cron.job(
     FREE_GAMES_CRON,
-    () => checkGames(channelId),
+    () => checkGames(guildId, channelId, listName),
     undefined,
     true
   )
   log.info(
-    `added new FreeGamesNotifier task to channel <#${channelId}> with cronTime: ${FREE_GAMES_CRON}`
+    `added new FreeGamesNotifier task to channel <#${channelId}>, notifying to ${listName} with cronTime: ${FREE_GAMES_CRON}`
   )
 }
 
-async function removeFreeGamesNotifierTask () {}
+async function removeFreeGamesNotifierTask (guildId) {
+  if (!tasks[guildId]) {
+    return
+  }
+  tasks[guildId].stop()
+  delete tasks[guildId]
+  log.info('stopped and removed Free Games task from guild guildId.')
+}
 
 function stopAllFreeGamesTasks () {
   Object.values(tasks).forEach((task) => task.stop())
@@ -130,5 +155,6 @@ module.exports = {
   initFreeGamesTasksAsync,
   startAllFreeGamesTasks,
   stopAllFreeGamesTasks,
+  addFreeGamesNotifierAndStartTask,
   removeFreeGamesNotifierTask
 }
