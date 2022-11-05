@@ -326,7 +326,7 @@ module.exports = {
       .setDescription('Stuur een notificatie naar iedereen op een bepaalde lijst')
       .addStringOption(stringoption => stringoption
         .setName('naam')
-        .setDescription('De naam van de lijst waarvoor je een notificatie wilt sture.')
+        .setDescription('De naam van de lijst waarvoor je een notificatie wilt sturen.')
         .setRequired(true)
         .setAutocomplete(true))
       .addStringOption(stringoption => stringoption
