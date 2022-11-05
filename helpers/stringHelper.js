@@ -1,8 +1,8 @@
 function stringIncludes (str, partial, isCaseSensitive) {
   if (isCaseSensitive) {
-    str.includes(partial)
+    return str.includes(partial)
   } else {
-    str.toLowerCase(partial.toLowerCase())
+    return str.toLowerCase().includes(partial.toLowerCase())
   }
 }
 
