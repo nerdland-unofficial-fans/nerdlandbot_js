@@ -15,5 +15,5 @@ module.exports = {
     "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?country=BE",
   EPIC_GAMES_STORE_BASE_URL: "https://www.epicgames.com/store/en-US/p/",
   DAD_JOKE_URL: "https://icanhazdadjoke.com",
-  WOMBATS_DIR_NAME: "wombats",
+  WOMBATS_DIR_NAME: "wombats"
 }
