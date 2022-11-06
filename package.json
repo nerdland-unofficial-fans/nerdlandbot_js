@@ -4,7 +4,8 @@
   "description": "A discord bot for the nNerdland community",
   "main": "nerdlandbot.js",
   "scripts": {
-    "test": "standard && echo \"standard-js analysis found no issues!\" && exit 0"
+    "test": "standard && echo \"standard-js analysis found no issues!\" && exit 0",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,7 @@
     "winston": "^3.8.2"
   },
   "devDependencies": {
+    "husky": "^8.0.1",
     "standard": "*"
   }
 }
