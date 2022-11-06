@@ -1,4 +1,3 @@
-
 module.exports = {
   GUILD_DATA: './guilds',
   DEFAULT_TIMEOUT: 30000,
@@ -10,6 +9,11 @@ module.exports = {
     BULK_DELETE_MAX_AGE: 14 * 24 * 60 * 60 * 1000 // 2 weeks in milliseconds
   },
   CRON_REGEX_SYNTAX: /(((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5}/,
+  // Cron for every friday at noon
+  FREE_GAMES_CRON: '0 19 * * 5',
+  EPIC_GAMES_API_URL:
+    'https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?country=BE',
+  EPIC_GAMES_STORE_BASE_URL: 'https://www.epicgames.com/store/en-US/p/',
   DAD_JOKE_URL: 'https://icanhazdadjoke.com',
   WOMBATS_DIR_NAME: 'wombats'
 }
