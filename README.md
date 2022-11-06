@@ -68,6 +68,8 @@ npm test
 standard --fix
 ```
 
+We are using [Husky](https://github.com/typicode/husky) to install a [git pre-commit hook](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks) that will run the code analysis before each commit. It will throw an error if the code is not compliant and prevent the commit from being made.
+
 The analysis is run automatically for each branch on the origin, and for each pull request to 'main' or 'develop'.
 
 Failing the standardjs analysis will prevent a branch from being merged.
