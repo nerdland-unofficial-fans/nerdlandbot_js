@@ -13,5 +13,7 @@ module.exports = {
   FREE_GAMES_CRON: '0 19 * * 5',
   EPIC_GAMES_API_URL:
     'https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?country=BE',
-  EPIC_GAMES_STORE_BASE_URL: 'https://www.epicgames.com/store/en-US/p/'
+  EPIC_GAMES_STORE_BASE_URL: 'https://www.epicgames.com/store/en-US/p/',
+  DAD_JOKE_URL: 'https://icanhazdadjoke.com',
+  WOMBATS_DIR_NAME: 'wombats'
 }
