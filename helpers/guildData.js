@@ -68,6 +68,7 @@ function initGuild (guild) {
   if (!guild.purgers) { guild.purgers = {} }
   if (!guild.memberNotificationNumber) { guild.memberNotificationNumber = constants.DEFAULT_MEMBER_NOTIFICATION_NUMBER }
   if (!guild.reminders) { guild.reminders = {} }
+  if (!guild.reminderChannel) { guild.reminderChannel = '' }
 }
 
 async function getAllGuilds () {

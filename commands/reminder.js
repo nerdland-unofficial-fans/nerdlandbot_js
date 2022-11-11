@@ -1,6 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
 const { ModalBuilder, TextInputBuilder, ActionRowBuilder, TextInputStyle } = require('discord.js')
-// const { reply } = require('../helpers/interactionHelper')
 
 async function replyToInteraction (interaction) {
   const modal = new ModalBuilder()

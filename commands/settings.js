@@ -40,12 +40,28 @@ async function clearMemberNotifications (interaction) {
   await reply(interaction, 'Ok. Er worden geen periodieke meldingen meer geplaatst van het aantal gebruikers.')
 }
 
+async function setReminderChannel (interaction) {
+  const reminderChannel = interaction.options.getChannel('channel')
+  const guildData = await getGuild(interaction.guildId)
+  guildData.reminderChannel = reminderChannel.id
+  await saveGuild(guildData)
+  await reply(interaction, 'Ok, ingesteld!')
+}
+
+async function clearReminderChannel (interaction) {
+  const guildData = await getGuild(interaction.guild.id)
+  guildData.reminderChannel = ''
+  await saveGuild(guildData)
+  await reply(interaction, 'Ok. Er worden geen herinneringen meer geplaatst.')
+}
+
 async function showSettings (interaction) {
   const guildData = await getGuild(interaction.guild.id)
   const embed = new EmbedBuilder()
   const settings = [
     `\u2022 new_member_notif_number: ${guildData.memberNotificationNumber}`,
-    `\u2022 new_member_notif_channel: <#${guildData.memberNotificationChannelId}>`
+    `\u2022 new_member_notif_channel: <#${guildData.memberNotificationChannelId}>`,
+    `\u2022 reminder_channel: <#${guildData.reminderChannel}>`
   ]
   embed.setTitle('Settings: ')
   embed.setDescription(settings.join('\n'))
@@ -80,6 +96,19 @@ module.exports = {
       .setDescription('Verwijder de periodieke notificatie van nieuwe leden')
     )
     .addSubcommand(subcommand => subcommand
+      .setName('set_reminder_channel')
+      .setDescription('Zet in welk kanaal je herinneringen wilt zien')
+      .addChannelOption(option => option
+        .setName('channel')
+        .setDescription('Zet in welk kanaal je herinneringen wilt zien')
+        .setRequired(true)
+      )
+    )
+    .addSubcommand(subcommand => subcommand
+      .setName('clear_reminder_channel')
+      .setDescription('Verwijder het reminder kanaal.')
+    )
+    .addSubcommand(subcommand => subcommand
       .setName('show')
       .setDescription('Toon alle custom settings')
     ),
@@ -97,6 +126,12 @@ module.exports = {
         break
       case 'clear_member_notif':
         await clearMemberNotifications(interaction)
+        break
+      case 'set_reminder_channel':
+        await setReminderChannel(interaction)
+        break
+      case 'clear_reminder_channel':
+        await clearReminderChannel(interaction)
         break
       case 'show':
         await showSettings(interaction)
