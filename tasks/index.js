@@ -1,5 +1,5 @@
 const { initPurgeChannelTasksAsync, stopAllPurgeChannelTasks } = require('./purgeChannel')
-const { startReminderTask, stopReminderTask } = require('./sendReminder')
+const { startReminderTask } = require('./sendReminder')
 const log = require('../helpers/logger')
 
 async function startTasksAsync (client) {
@@ -15,7 +15,6 @@ async function startTasksAsync (client) {
 // stopTasks not used atm, but could be useful eventually
 function stopTasks () {
   stopAllPurgeChannelTasks()
-  stopReminderTask()
   log.info('Stopped all tasks')
 }
 

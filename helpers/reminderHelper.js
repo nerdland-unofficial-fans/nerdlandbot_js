@@ -1,6 +1,5 @@
 const { getGuild, saveGuild } = require('./guildData')
 const { discordTime } = require('./DateTimeHelper')
-// const { reply } = require('./interactionHelper')
 
 async function setReminder (interaction) {
   const guild = await getGuild(interaction.guildId)
@@ -11,7 +10,11 @@ async function setReminder (interaction) {
   const memberId = interaction.member.id
   guild.reminders[currentTime] = { memberId, timeToBeReminded, message }
   await saveGuild(guild)
-  await interaction.reply({ content: `Reminder ingesteld voor binnen ${reminderMinutes}!` })
+  if (reminderMinutes === '1') {
+    await interaction.reply({ content: `Reminder ingesteld voor binnen ${reminderMinutes} minuut!` })
+  } else {
+    await interaction.reply({ content: `Reminder ingesteld voor binnen ${reminderMinutes} minuten!` })
+  }
 }
 
 module.exports = {

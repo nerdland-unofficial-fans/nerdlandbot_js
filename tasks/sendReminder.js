@@ -3,7 +3,7 @@ const cron = require('cron')
 const log = require('../helpers/logger')
 const { getAllGuilds, saveGuild } = require('../helpers/guildData')
 const { REMINDER_CRON_TIME } = require('../helpers/constants')
-const { discordTime } = require('../helpers/DateTimeHelper')
+const { discordTime, reminderTime } = require('../helpers/DateTimeHelper')
 
 async function startReminderTask (client) {
   const guildsData = await getAllGuilds()
@@ -12,11 +12,15 @@ async function startReminderTask (client) {
     async function () {
       try {
         guildsData.forEach(guildData => {
+          if (!guildData.reminderChannel) {
+            log.info('No reminder channel set.')
+            return
+          }
           const channel = client.channels.cache.get(guildData.reminderChannel)
           const now = discordTime()
           Object.entries(guildData.reminders).forEach(([originalTime, reminder]) => {
             if (now.toEpochSecond() >= reminder.timeToBeReminded) {
-              channel.send(`Hey <@${reminder.memberId}>, ik moest je op dit moment laten weten dat het tijd was voor het volgende:\n${reminder.message}`)
+              channel.send(`Hey <@${reminder.memberId}>, ik moest je om ${reminderTime(reminder.timeToBeReminded)} herinneren aan het volgende:\n${reminder.message}`)
               delete guildData.reminders[originalTime]
               saveGuild(guildData)
             }
@@ -33,8 +37,4 @@ async function startReminderTask (client) {
   log.info(`Checking for new reminders every minute - cron ${REMINDER_CRON_TIME}`)
 }
 
-async function stopReminderTask () {
-
-}
-
-module.exports = { startReminderTask, stopReminderTask }
+module.exports = { startReminderTask }
