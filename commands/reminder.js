@@ -1,9 +1,10 @@
 const { SlashCommandBuilder } = require('@discordjs/builders')
 const { ModalBuilder, TextInputBuilder, ActionRowBuilder, TextInputStyle } = require('discord.js')
+const { MODAL_IDS } = require('../helpers/constants')
 
-async function replyToInteraction (interaction) {
+async function setReminder (interaction) {
   const modal = new ModalBuilder()
-    .setCustomId('reminderModal')
+    .setCustomId(MODAL_IDS.REMINDER_MODAL)
     .setTitle('Stel je herinnering hier in')
 
   const reminderInput = new TextInputBuilder()
@@ -35,6 +36,6 @@ module.exports = {
     .setDescription('Stel een herinnering in.'),
 
   async execute (interaction) {
-    replyToInteraction(interaction)
+    setReminder(interaction)
   }
 }

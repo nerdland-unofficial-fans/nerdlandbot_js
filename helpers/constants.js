@@ -12,6 +12,9 @@ module.exports = {
   REMINDER_CRON_TIME: '* * * * *', // every minute
   // Cron for every friday at noon
   FREE_GAMES_CRON: '0 19 * * 5',
+  MODAL_IDS: {
+    REMINDER_MODAL: 'reminderModal'
+  },
   EPIC_GAMES_API_URL:
     'https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?country=BE',
   EPIC_GAMES_STORE_BASE_URL: 'https://www.epicgames.com/store/en-US/p/',

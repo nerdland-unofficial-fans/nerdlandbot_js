@@ -106,7 +106,7 @@ module.exports = {
     )
     .addSubcommand(subcommand => subcommand
       .setName('clear_reminder_channel')
-      .setDescription('Verwijder het reminder kanaal.')
+      .setDescription('Ontkoppel het reminder kanaal.')
     )
     .addSubcommand(subcommand => subcommand
       .setName('show')

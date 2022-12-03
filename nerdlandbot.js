@@ -10,7 +10,7 @@ const { startTasksAsync } = require('./tasks')
 const { onMemberJoinAsync } = require('./eventHandlers/onMemberJoin')
 const { getAllCommandsSync } = require('./helpers/metadataHelper')
 const { addAutocompleteOptions } = require('./helpers/autoCompleteHelper')
-const { replyToModal } = require('./helpers/modalHelper')
+const { modalHelper } = require('./helpers/modalHelper')
 
 // Setup our environment variables via dotenv
 require('dotenv').config()
@@ -105,7 +105,7 @@ async function populateAutocomplete (interaction) {
 }
 
 async function handleModalSubmit (interaction) {
-  replyToModal(interaction)
+  modalHelper(interaction)
 }
 
 // Notify progress

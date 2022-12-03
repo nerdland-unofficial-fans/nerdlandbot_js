@@ -1,11 +1,12 @@
 const { setReminder } = require('./reminderHelper')
+const { MODAL_IDS } = require('./constants')
 
-async function replyToModal (interaction) {
-  if (interaction.fields.getTextInputValue('reminderTime')) {
+async function modalHelper (interaction) {
+  if (interaction.customId === MODAL_IDS.REMINDER_MODAL) {
     setReminder(interaction)
   }
 }
 
 module.exports = {
-  replyToModal
+  modalHelper
 }
