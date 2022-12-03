@@ -12,15 +12,16 @@ async function startReminderTask (client) {
     async function () {
       try {
         guildsData.forEach(guildData => {
-          if (!guildData.reminderChannel) {
-            log.info('No reminder channel set.')
-            return
-          }
-          const channel = client.channels.cache.get(guildData.reminderChannel)
           const now = discordTime()
           Object.entries(guildData.reminders).forEach(([reminderTime, reminder]) => {
             if (now.toEpochSecond() >= reminderTime) {
-              channel.send(`Hey <@${reminder.memberId}>, ik moest je om ${formatEpochSeconds(Number(reminderTime))} herinneren aan het volgende:\n${reminder.message}`)
+              const reminderMessage = `Hey <@${reminder.memberId}>, ik moest je om ${formatEpochSeconds(Number(reminderTime))} herinneren aan het volgende:\n${reminder.message}`
+              if (guildData.reminderChannel !== '') {
+                const channel = client.channels.cache.get(guildData.reminderChannel)
+                channel.send(reminderMessage)
+              } else {
+                client.users.send(reminder.memberId, reminderMessage)
+              }
               delete guildData.reminders[reminderTime]
               saveGuild(guildData)
             }

@@ -33,7 +33,8 @@ async function setReminder (interaction) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('reminder')
-    .setDescription('Stel een herinnering in.'),
+    .setDescription('Stel een herinnering in.')
+    .setDMPermission(false),
 
   async execute (interaction) {
     setReminder(interaction)

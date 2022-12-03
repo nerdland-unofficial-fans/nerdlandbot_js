@@ -52,7 +52,7 @@ async function clearReminderChannel (interaction) {
   const guildData = await getGuild(interaction.guild.id)
   guildData.reminderChannel = ''
   await saveGuild(guildData)
-  await reply(interaction, 'Ok. Er worden geen herinneringen meer geplaatst.')
+  await reply(interaction, 'Ok. Er worden geen herinneringen meer geplaatst in deze server. De gebruikers zullen een DM krijgen.')
 }
 
 async function showSettings (interaction) {
