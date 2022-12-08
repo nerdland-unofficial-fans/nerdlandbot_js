@@ -107,3 +107,6 @@ guilds/*
 
 # Editor settings
 .vscode
+
+#Mac OS Finder file
+.DS_Store
