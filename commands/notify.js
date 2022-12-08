@@ -3,10 +3,11 @@ const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
 const { foemp } = require('../helpers/foemp')
 const { reply, defer, sendToChannel } = require('../helpers/interactionHelper')
 const { EmbedBuilder } = require('discord.js')
-const { EMBED_MAX_FIELD_LENGTH, DISCORD_MSG_MAX_LENGTH } = require('../helpers/constants')
 const { getUserNameFromIdAsync, getTagFromId } = require('../helpers/userHelper')
+const { getNotifyTags } = require('../helpers/getNotifyTags')
 const { caseInsensitiveSort } = require('../helpers/sortHelper')
 const { arrayIncludesString } = require('../helpers/arrayHelper')
+const { EMBED_MAX_FIELD_LENGTH } = require('../helpers/constants')
 
 async function addNewList (interaction) {
   // Verify permissions
@@ -173,52 +174,25 @@ async function unsubList (interaction) {
 
 async function notifyList (interaction) {
   const guild = await getGuild(interaction.guildId)
+  const { notifyLists } = guild
   const userId = interaction.member.user.id
   const listName = interaction.options.getString('naam')
   const message = interaction.options.getString('bericht')
-  const listNames = Object.keys(guild.notifyLists)
 
-  // check if list exists
-  if (!arrayIncludesString(listNames, listName, false)) {
-    await reply(interaction, `De lijst ${listName} bestaat niet, ${foemp()}!`)
-    return
+  let tags
+  try {
+    tags = getNotifyTags(notifyLists, listName)
+  } catch (error) {
+    await reply(interaction, error.message)
   }
 
   // check wheter or not message is too long
   if (message && message.length > EMBED_MAX_FIELD_LENGTH) {
-    await reply(interaction, `Je bericht is ${message.length - EMBED_MAX_FIELD_LENGTH} karakters te lang, ${foemp()}`)
-    return
+    throw new Error(`Je bericht is ${message.length - EMBED_MAX_FIELD_LENGTH} karakters te lang, ${foemp()}`)
   }
 
-  // check to see if the list has any subscribers to notify
-  const subscribers = guild.notifyLists[listName]
-  if (subscribers.length === 0) {
-    await reply(interaction, `Er is nog niemand ingeschreven op deze lijst, ${foemp()}!`)
-    return
-  }
-
-  // build notification
   const botName = await getUserNameFromIdAsync(interaction, interaction.applicationId)
   const username = getTagFromId(userId)
-  const tags = []
-  let tag = ''
-  const connection = ', '
-  for (const id of subscribers) {
-    const usr = getTagFromId(id)
-
-    if (tag.length + connection.length + usr.length < DISCORD_MSG_MAX_LENGTH) {
-      if (tag.length > 0) {
-        tag += connection
-      }
-      tag += usr
-    } else {
-      tags.push(tag)
-      tag = ''
-    }
-  }
-  if (tag.length > 0) {
-    tags.push(tag)
-  }
 
   // build reply
   const embed = new EmbedBuilder()
@@ -326,7 +300,7 @@ module.exports = {
       .setDescription('Stuur een notificatie naar iedereen op een bepaalde lijst')
       .addStringOption(stringoption => stringoption
         .setName('naam')
-        .setDescription('De naam van de lijst waarvoor je een notificatie wilt sture.')
+        .setDescription('De naam van de lijst waarvoor je een notificatie wilt sturen.')
         .setRequired(true)
         .setAutocomplete(true))
       .addStringOption(stringoption => stringoption

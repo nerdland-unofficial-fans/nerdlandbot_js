@@ -17,9 +17,15 @@ function isWeekend (zonedDateTime) {
   return zonedDateTime.dayOfWeek().value() > 5
 }
 
+function formatEpochSeconds (timeToBeReminded) {
+  const time = Instant.EPOCH.plusSeconds(timeToBeReminded).atOffset(timeZones.BRUSSELS).toLocalTime()
+  return `${time.hour()}:${time.minute()}`
+}
+
 module.exports = {
   timeZones,
   now,
   discordTime,
-  isWeekend
+  isWeekend,
+  formatEpochSeconds
 }

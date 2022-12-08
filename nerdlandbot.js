@@ -10,6 +10,7 @@ const { startTasksAsync } = require('./tasks')
 const { onMemberJoinAsync } = require('./eventHandlers/onMemberJoin')
 const { getAllCommandsSync } = require('./helpers/metadataHelper')
 const { addAutocompleteOptions } = require('./helpers/autoCompleteHelper')
+const { modalHelper } = require('./helpers/modalHelper')
 
 // Setup our environment variables via dotenv
 require('dotenv').config()
@@ -103,6 +104,10 @@ async function populateAutocomplete (interaction) {
   addAutocompleteOptions(interaction)
 }
 
+async function handleModalSubmit (interaction) {
+  modalHelper(interaction)
+}
+
 // Notify progress
 client.on('ready', _ => {
   log.info(`Logged in as ${client.user.tag}!`)
@@ -128,6 +133,8 @@ client.on('interactionCreate', async interaction => {
     executeCommand(interaction)
   } else if (interaction.isAutocomplete()) {
     populateAutocomplete(interaction)
+  } else if (interaction.isModalSubmit()) {
+    handleModalSubmit(interaction)
   }
 })
 
