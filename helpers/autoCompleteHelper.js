@@ -2,6 +2,7 @@ const { ApplicationCommandOptionType } = require('discord.js')
 const { getGuild } = require('../helpers/guildData')
 const { caseInsensitiveSort } = require('./sortHelper')
 const { stringIncludes } = require('./stringHelper')
+const { AUTOCOMPLETE_MAX_RESULTS } = require('./constants')
 
 async function addAutocompleteOptions (interaction) {
   switch (interaction.commandName) {
@@ -57,6 +58,7 @@ async function addNotifyAutoCompleteOptions (interaction) {
     const options = filteredLists
       .sort(caseInsensitiveSort)
       .map(name => ({ name, value: name }))
+      .slice(0, AUTOCOMPLETE_MAX_RESULTS)
 
     // return data
     await interaction.respond(options)
