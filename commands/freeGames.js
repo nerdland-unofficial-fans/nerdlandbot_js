@@ -61,23 +61,26 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('freegames')
     .setDescription('Laat wekelijks op vrijdag weten welke gratis games beschikbaar zijn op Epic Games Store.')
+
     .addSubcommand(subcommand => subcommand
       .setName('add')
       .setDescription('Voegt een gratis games melder taak toe voor dit kanaal.')
-      .addChannelOption(option =>
-        option.setName('channel').setDescription('Op welk kanaal wil je de melder toevoegen? [optioneel, standaard wordt het huidige kanaal gekozen]')
-      )
-      .addStringOption(option =>
-        option.setName('list').setDescription('Welke lijst wil je gebruiken?').setAutocomplete(true))
-    )
+      .addChannelOption(option => option
+        .setName('channel')
+        .setDescription('Op welk kanaal wil je de melder toevoegen? [optioneel, standaard wordt het huidige kanaal gekozen]'))
+      .addStringOption(option => option
+        .setName('list')
+        .setDescription('Welke lijst wil je gebruiken?')
+        .setAutocomplete(true)))
+
     .addSubcommand(subcommand => subcommand
       .setName('show')
-      .setDescription('Toont de bestaande gratis games melder')
-    )
+      .setDescription('Toont de bestaande gratis games melder'))
+
     .addSubcommand(subcommand => subcommand
       .setName('remove')
-      .setDescription('Verwijdert de gratis games melder.')
-    ),
+      .setDescription('Verwijdert de gratis games melder.')),
+
   async execute (interaction) {
     await defer(interaction, { ephemeral: true })
 
