@@ -181,7 +181,7 @@ async function notifyList (interaction) {
 
   let tags
   try {
-    tags = getNotifyTags(notifyLists, listName)
+    tags = await getNotifyTags(notifyLists, listName)
   } catch (error) {
     await reply(interaction, error.message)
   }
