@@ -20,7 +20,7 @@
     "@js-joda/timezone": "^2.15.0",
     "axios": "^1.2.1",
     "cron": "^2.1.0",
-    "discord-api-types": "^0.37.24",
+    "discord-api-types": "^0.37.29",
     "discord.js": "^14.7.1",
     "dotenv": "^16.0.3",
     "winston": "^3.8.2"
