@@ -14,7 +14,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@discordjs/builders": "^1.6.3",
+    "@discordjs/builders": "^1.6.4",
     "@discordjs/rest": "^1.5.0",
     "@js-joda/core": "^5.5.3",
     "@js-joda/timezone": "^2.18.0",
