@@ -15,7 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "@discordjs/builders": "^1.6.3",
-    "@discordjs/rest": "^1.5.0",
+    "@discordjs/rest": "^2.0.1",
     "@js-joda/core": "^5.5.3",
     "@js-joda/timezone": "^2.18.0",
     "axios": "^1.4.0",
