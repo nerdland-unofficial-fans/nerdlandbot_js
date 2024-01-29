@@ -123,7 +123,7 @@ async function addFreeGamesNotifierAndStartTask (
   guildId,
   { channelId, listName }
 ) {
-  tasks[guildId] = cron.CronJob(
+  tasks[guildId] = new cron.CronJob(
     FREE_GAMES_CRON,
     () => checkGames(guildId, channelId, listName),
     undefined,
