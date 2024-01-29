@@ -23,7 +23,7 @@
     "axios": "^1.6.5",
     "discord-api-types": "^0.37.67",
     "discord.js": "^14.14.1",
-    "dotenv": "^16.3.2",
+    "dotenv": "^16.4.1",
     "winston": "^3.11.0"
   },
   "devDependencies": {
