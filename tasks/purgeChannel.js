@@ -53,7 +53,7 @@ function removePurgeChannelTask (purger) {
 }
 
 function addPurgerAndStartTask (purger) {
-  tasks[purger.channelId] = cron.CronJob(
+  tasks[purger.channelId] = new cron.CronJob(
     purger.cronTime,
     async function () {
       try {

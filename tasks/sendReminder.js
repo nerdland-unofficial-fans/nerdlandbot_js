@@ -7,7 +7,7 @@ const { discordTime, formatEpochSeconds } = require('../helpers/DateTimeHelper')
 
 async function startReminderTask (client) {
   const guildsData = await getAllGuilds()
-  const reminderJob = cron.CronJob(
+  const reminderJob = new cron.CronJob(
     REMINDER_CRON_TIME,
     async function () {
       try {
