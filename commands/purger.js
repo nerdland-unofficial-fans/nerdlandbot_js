@@ -2,10 +2,8 @@ const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ChannelType, Mes
 const { foemp } = require('../helpers/foemp')
 const { reply, defer } = require('../helpers/interactionHelper')
 const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
-const { CRON_REGEX_SYNTAX } = require('../helpers/constants')
+const { validateCronExpression } = require('cron')
 const { addPurgerAndStartTask, removePurgeChannelTask } = require('../tasks/purgeChannel')
-
-const cronSyntaxRegex = CRON_REGEX_SYNTAX
 
 async function addNewPurger (interaction) {
   if (!await verifyAdmin(interaction)) { return }
@@ -23,7 +21,7 @@ async function addNewPurger (interaction) {
     await reply(interaction, `Dit gaat niet want ik heb geen rechten om berichten te wissen in dat kanaal, ${foemp(interaction)}!`)
     return
   }
-  if (!cronSyntaxRegex.test(cronTime)) {
+  if (!validateCronExpression(cronTime).valid) {
     await reply(interaction, `Uw cron syntax is niet correct, ${foemp(interaction)}!`)
     return
   }

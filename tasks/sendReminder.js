@@ -11,22 +11,23 @@ async function startReminderTask (client) {
     REMINDER_CRON_TIME,
     async function () {
       try {
-        guildsData.forEach(guildData => {
+        for (const guildData of guildsData) {
           const now = discordTime()
-          Object.entries(guildData.reminders).forEach(([reminderTime, reminder]) => {
+          for (const [reminderTime, reminder] of Object.entries(guildData.reminders)) {
             if (now.toEpochSecond() >= reminderTime) {
               const reminderMessage = `Hey <@${reminder.memberId}>, ik moest je om ${formatEpochSeconds(Number(reminderTime))} herinneren aan het volgende:\n${reminder.message}`
               if (guildData.reminderChannel !== '') {
-                const channel = client.channels.cache.get(guildData.reminderChannel)
-                channel.send(reminderMessage)
+                const channel = await client.channels.fetch(guildData.reminderChannel)
+                await channel.send(reminderMessage)
               } else {
-                client.users.send(reminder.memberId, reminderMessage)
+                const user = await client.users.fetch(reminder.memberId)
+                await user.send(reminderMessage)
               }
               delete guildData.reminders[reminderTime]
-              saveGuild(guildData)
+              await saveGuild(guildData)
             }
-          })
-        })
+          }
+        }
       } catch (error) {
         log.error(`error sending reminder: ${error}`)
       }
@@ -34,8 +35,8 @@ async function startReminderTask (client) {
     undefined, // onComplete
     true // start
   )
-  reminderJob.start()
   log.info(`Checking for new reminders every.. - cron ${REMINDER_CRON_TIME}`)
+  return reminderJob
 }
 
 module.exports = { startReminderTask }
