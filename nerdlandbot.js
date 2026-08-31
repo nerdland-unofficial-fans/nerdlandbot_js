@@ -11,7 +11,7 @@ const { addAutocompleteOptions } = require('./helpers/autoCompleteHelper')
 const { modalHelper } = require('./helpers/modalHelper')
 
 // Setup our environment variables via dotenv
-require('dotenv').config()
+require('dotenv').config({ quiet: true })
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN
 const CLIENT_ID = process.env.CLIENT_ID
