@@ -69,6 +69,7 @@ function initGuild (guild) {
   if (!guild.memberNotificationNumber) { guild.memberNotificationNumber = constants.DEFAULT_MEMBER_NOTIFICATION_NUMBER }
   if (!guild.reminders) { guild.reminders = {} }
   if (!guild.reminderChannel) { guild.reminderChannel = '' }
+  if (!guild.banTrap) { guild.banTrap = null }
 }
 
 async function getAllGuilds () {

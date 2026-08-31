@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ChannelType, Int
 const { reply, defer } = require('../helpers/interactionHelper')
 const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
 const { foemp } = require('../helpers/foemp')
+const { BAN_TRAP_DEFAULT_DELETE_HOURS, BAN_TRAP_MAX_DELETE_HOURS } = require('../helpers/constants')
 
 async function setMemberNotificationChannel (interaction) {
   const channel = interaction.options.getChannel('channel')
@@ -53,13 +54,48 @@ async function clearReminderChannel (interaction) {
   await reply(interaction, 'Ok. Er worden geen herinneringen meer geplaatst in deze server. De gebruikers zullen een DM krijgen.')
 }
 
+async function setBanTrap (interaction) {
+  const channel = interaction.options.getChannel('channel')
+  const deleteHistoryHours = interaction.options.getInteger('delete_history_hours') ?? BAN_TRAP_DEFAULT_DELETE_HOURS
+  const botMember = interaction.guild.members.me
+
+  if (!botMember.permissions.has(PermissionsBitField.Flags.BanMembers)) {
+    await reply(interaction, `Dit gaat niet want ik heb geen rechten om leden te bannen, ${foemp(interaction)}!`)
+    return
+  }
+
+  if (!channel.permissionsFor(botMember).has([
+    PermissionsBitField.Flags.ViewChannel,
+    PermissionsBitField.Flags.ManageMessages
+  ])) {
+    await reply(interaction, `Dit gaat niet want ik kan daar geen berichten bekijken en verwijderen, ${foemp(interaction)}!`)
+    return
+  }
+
+  const guildData = await getGuild(interaction.guildId)
+  guildData.banTrap = { channelId: channel.id, deleteHistoryHours }
+  await saveGuild(guildData)
+  await reply(interaction, `Banval ingesteld op ${channel}. Bij een ban wordt ${deleteHistoryHours} uur berichtgeschiedenis verwijderd.`)
+}
+
+async function clearBanTrap (interaction) {
+  const guildData = await getGuild(interaction.guildId)
+  guildData.banTrap = null
+  await saveGuild(guildData)
+  await reply(interaction, 'De banval is uitgeschakeld.')
+}
+
 async function showSettings (interaction) {
   const guildData = await getGuild(interaction.guild.id)
   const embed = new EmbedBuilder()
+  const banTrap = guildData.banTrap
+    ? `<#${guildData.banTrap.channelId}> (${guildData.banTrap.deleteHistoryHours} uur geschiedenis)`
+    : 'uitgeschakeld'
   const settings = [
     `\u2022 new_member_notif_number: ${guildData.memberNotificationNumber}`,
     `\u2022 new_member_notif_channel: <#${guildData.memberNotificationChannelId}>`,
-    `\u2022 reminder_channel: <#${guildData.reminderChannel}>`
+    `\u2022 reminder_channel: <#${guildData.reminderChannel}>`,
+    `\u2022 ban_trap: ${banTrap}`
   ]
   embed.setTitle('Settings: ')
   embed.setDescription(settings.join('\n'))
@@ -108,6 +144,26 @@ module.exports = {
       .setDescription('Ontkoppel het reminder kanaal.')
     )
     .addSubcommand(subcommand => subcommand
+      .setName('set_ban_trap')
+      .setDescription('Ban leden die een bericht in het ingestelde kanaal plaatsen')
+      .addChannelOption(option => option
+        .setName('channel')
+        .setDescription('Het tekstkanaal dat als banval dient')
+        .addChannelTypes(ChannelType.GuildText)
+        .setRequired(true)
+      )
+      .addIntegerOption(option => option
+        .setName('delete_history_hours')
+        .setDescription('Aantal uren berichtgeschiedenis om te verwijderen (standaard 24)')
+        .setMinValue(0)
+        .setMaxValue(BAN_TRAP_MAX_DELETE_HOURS)
+      )
+    )
+    .addSubcommand(subcommand => subcommand
+      .setName('clear_ban_trap')
+      .setDescription('Schakel de banval uit')
+    )
+    .addSubcommand(subcommand => subcommand
       .setName('show')
       .setDescription('Toon alle custom settings')
     ),
@@ -131,6 +187,12 @@ module.exports = {
         break
       case 'clear_reminder_channel':
         await clearReminderChannel(interaction)
+        break
+      case 'set_ban_trap':
+        await setBanTrap(interaction)
+        break
+      case 'clear_ban_trap':
+        await clearBanTrap(interaction)
         break
       case 'show':
         await showSettings(interaction)
