@@ -1,4 +1,3 @@
-
 const cron = require('cron')
 const log = require('../helpers/logger')
 const { getAllGuilds } = require('../helpers/guildData')
