@@ -130,10 +130,10 @@ The bot does not track reactions or build profiles from normal Discord activity.
 Server admins, or bot admins with the `Ban Members` permission, can configure a text channel where posting immediately deletes the triggering message and bans the author:
 
 ```text
-/settings set_ban_trap channel:#channel delete_history_hours:24
+/settings set_ban_trap channel:#channel delete_history_hours:2
 ```
 
-`delete_history_hours` is optional, defaults to 24, and accepts 0–168 hours. Discord removes that member's recent message history across the server as part of the ban.
+`delete_history_hours` is optional, defaults to 2, and accepts 0–24 hours. Discord removes that member's recent message history across the server as part of the ban.
 
 Server moderators, server administrators, and configured bot admins are exempt. Disable the feature with `/settings clear_ban_trap`.
 

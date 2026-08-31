@@ -159,7 +159,7 @@ module.exports = {
       )
       .addIntegerOption(option => option
         .setName('delete_history_hours')
-        .setDescription('Aantal uren berichtgeschiedenis om te verwijderen (standaard 24)')
+        .setDescription('Aantal uren berichtgeschiedenis om te verwijderen (standaard 2)')
         .setMinValue(0)
         .setMaxValue(BAN_TRAP_MAX_DELETE_HOURS)
       )
