@@ -10,7 +10,7 @@ module.exports = {
   async execute (interaction) {
     const joke = (
       await axios.get(DAD_JOKE_URL, {
-        headers: { Accept: 'text/plain', 'User-Agent': 'axios 0.21.1' }
+        headers: { Accept: 'text/plain', 'User-Agent': 'nerdlandbot_js/1.0' }
       })
     ).data
 

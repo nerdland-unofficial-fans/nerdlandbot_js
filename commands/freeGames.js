@@ -23,7 +23,7 @@ async function addNewFreeGamesNotifier (interaction) {
 
   guild.freeGamesChecker = { channelId: channel.id, listName }
   await saveGuild(guild)
-  addFreeGamesNotifierAndStartTask(guild.id, guild.freeGamesChecker)
+  addFreeGamesNotifierAndStartTask(guild.guildId, guild.freeGamesChecker)
   await reply(interaction, `De gratis games melder is aangemaakt op kanaal ${channel}.`)
 }
 
