@@ -50,6 +50,22 @@ You need a file to keep your bot token safely. You'll do this by creating a file
 - npm install
 - node nerdlandbot.js
 
+## Running with Docker
+
+Pass secrets at runtime instead of storing them in the image:
+
+```sh
+mkdir -p guilds logs
+sudo chown -R 1000:1000 guilds logs
+
+docker run --env-file .env \
+  -v "$(pwd)/guilds:/usr/src/app/guilds" \
+  -v "$(pwd)/logs:/usr/src/app/logs" \
+  ghcr.io/nerdland-unofficial-fans/nerdlandbot_js:main
+```
+
+Docker Compose deployments must pass `.env` through `env_file` or an `environment` section. Persist `guilds` and `logs` with volumes.
+
 # Code Style
 [![JavaScript Style Guide](https://cdn.rawgit.com/standard/standard/master/badge.svg)](https://github.com/standard/standard)
 

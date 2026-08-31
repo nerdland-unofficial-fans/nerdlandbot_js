@@ -27,14 +27,6 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
       
-    - name: add .env
-      shell: bash
-      run: |
-        touch .env
-        echo DISCORD_TOKEN="${{ secrets.DISCORD_TOKEN }}" >> .env
-        echo CLIENT_ID="${{ secrets.CLIENT_ID }}" >> .env
-        echo GUILD_ID="${{ secrets.GUILD_ID }}" >> .env
-        
     - name: Extract metadata (tags, labels) for Docker
       id: meta
       uses: docker/metadata-action@v6
@@ -51,12 +43,22 @@ jobs:
         
     - name: Pull and run the docker image
       uses: appleboy/ssh-action@v1.2.5
+      env:
+        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        CLIENT_ID: ${{ secrets.CLIENT_ID }}
+        GUILD_ID: ${{ secrets.GUILD_ID }}
       with:
         host: ${{ secrets.DEPLOYMENT_SERVER_IP }}
         username: ${{ secrets.DEPLOYMENT_SERVER_USER }}
         key: ${{ secrets.DEPLOYMENT_SERVER_PK }}
+        envs: DISCORD_TOKEN,CLIENT_ID,GUILD_ID
         script: |
           cd /home/github/nerdlandbot_js
+          umask 077
+          printf 'DISCORD_TOKEN=%s\nCLIENT_ID=%s\nGUILD_ID=%s\n' \
+            "$DISCORD_TOKEN" "$CLIENT_ID" "$GUILD_ID" > .env
+          mkdir -p guilds logs
+          sudo chown -R 1000:1000 guilds logs
           sudo docker-compose pull
           sudo docker-compose up -d
         
