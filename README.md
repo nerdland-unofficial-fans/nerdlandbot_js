@@ -127,7 +127,7 @@ The bot does not track reactions or build profiles from normal Discord activity.
 
 ## Ban trap
 
-Bot admins can configure a text channel where posting immediately deletes the triggering message and bans the author:
+Server admins, or bot admins with the `Ban Members` permission, can configure a text channel where posting immediately deletes the triggering message and bans the author:
 
 ```text
 /settings set_ban_trap channel:#channel delete_history_hours:24

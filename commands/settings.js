@@ -59,6 +59,11 @@ async function setBanTrap (interaction) {
   const deleteHistoryHours = interaction.options.getInteger('delete_history_hours') ?? BAN_TRAP_DEFAULT_DELETE_HOURS
   const botMember = interaction.guild.members.me
 
+  if (!interaction.member.permissions.has(PermissionsBitField.Flags.BanMembers)) {
+    await reply(interaction, `Je hebt geen rechten om leden te bannen, ${foemp(interaction)}!`)
+    return
+  }
+
   if (!botMember.permissions.has(PermissionsBitField.Flags.BanMembers)) {
     await reply(interaction, `Dit gaat niet want ik heb geen rechten om leden te bannen, ${foemp(interaction)}!`)
     return
