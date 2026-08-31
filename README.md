@@ -41,7 +41,6 @@ Alternatively, you will need to acquire a `DISCORD_TOKEN`. It is possible to obt
 You need a file to keep your bot token safely. You'll do this by creating a file with name ".env" which must contain following lines (see `.env.EXAMPLE` for an example. you can copy this file to `.env` and fill in your own values): 
 
 - DISCORD_TOKEN = "bot token"
-- PREFIX = "bot prefix"
 - CLIENT_ID = "user id for the bot"
 - GUILD_ID = "The id for your test-server"
 

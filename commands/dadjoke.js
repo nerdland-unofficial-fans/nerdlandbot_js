@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('@discordjs/builders')
+const { SlashCommandBuilder } = require('discord.js')
 const { reply } = require('../helpers/interactionHelper')
 const { DAD_JOKE_URL } = require('../helpers/constants')
 const axios = require('axios')

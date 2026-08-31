@@ -1,7 +1,5 @@
 // Import relevant classes from discord.js
-const { Client, GatewayIntentBits, Collection } = require('discord.js')
-const { REST } = require('@discordjs/rest')
-const { Routes } = require('discord-api-types/v9')
+const { Client, GatewayIntentBits, Collection, Events, MessageFlags, REST, Routes } = require('discord.js')
 // Import commands
 // Import helpers
 const log = require('./helpers/logger')
@@ -15,18 +13,9 @@ const { modalHelper } = require('./helpers/modalHelper')
 // Setup our environment variables via dotenv
 require('dotenv').config()
 
-const PREFIX = process.env.PREFIX
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN
 const CLIENT_ID = process.env.CLIENT_ID
 const GUILD_ID = process.env.GUILD_ID
-
-if (PREFIX) {
-  log.info(`Start bot with prefix '${PREFIX}'.`)
-} else {
-  const err = new Error('Failed to start bot! No PREFIX found in .env file.')
-  log.error(err)
-  throw err
-}
 
 if (CLIENT_ID) {
   log.info(`Start bot with client id '${CLIENT_ID}'.`)
@@ -36,13 +25,12 @@ if (CLIENT_ID) {
   throw err
 }
 
-const rest = new REST({ version: '9' }).setToken(DISCORD_TOKEN)
+const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN)
 
 // Instantiate a new client with some necessary parameters.
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildPresences,
     GatewayIntentBits.GuildVoiceStates
@@ -91,7 +79,7 @@ async function executeCommand (interaction) {
     await command.execute(interaction)
   } catch (error) {
     log.error(error)
-    const reply = { content: `Da kennek nie ${foemp(interaction)}!`, ephemeral: true }
+    const reply = { content: `Da kennek nie ${foemp(interaction)}!`, flags: MessageFlags.Ephemeral }
     if (interaction.deferred || interaction.replied) {
       await interaction.editReply(reply)
     } else {
@@ -109,27 +97,15 @@ async function handleModalSubmit (interaction) {
 }
 
 // Notify progress
-client.on('ready', _ => {
-  log.info(`Logged in as ${client.user.tag}!`)
+client.once(Events.ClientReady, readyClient => {
+  log.info(`Logged in as ${readyClient.user.tag}!`)
 
   // start tasks
   startTasksAsync(client) // no need to await
 })
 
-client.on('messageCreate', (message) => {
-  if (!message.author.bot && message.content.startsWith(PREFIX)) {
-    const replyText = 'Hallo!\n' +
-      'Het bot team is enthousiast om mee te delen dat we een stevige update hebben doorgevoerd!\n' +
-      'Vanaf nu gebruikt onze bot niet langer de verouderde text commands, maar zijn we overgeschakeld op de in discord geintegreerde slash commands.\n' +
-      'Je kan deze gebruiken door te beginnen met een / te typen, en discord zal dan automatisch aanvullen met de beschikbare opties.\n' +
-      'Indien je een overzichtje wilt van enkel de opties van de nerdlandbot, kan je alvast `/help` gebruiken!'
-
-    message.reply(replyText)
-  }
-})
-
-client.on('interactionCreate', async interaction => {
-  if (interaction.isCommand()) {
+client.on(Events.InteractionCreate, async interaction => {
+  if (interaction.isChatInputCommand()) {
     executeCommand(interaction)
   } else if (interaction.isAutocomplete()) {
     populateAutocomplete(interaction)
@@ -138,7 +114,7 @@ client.on('interactionCreate', async interaction => {
   }
 })
 
-client.on('guildMemberAdd', async member => {
+client.on(Events.GuildMemberAdd, async member => {
   try {
     await onMemberJoinAsync(member, client)
   } catch (error) {

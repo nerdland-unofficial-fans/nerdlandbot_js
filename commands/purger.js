@@ -1,11 +1,9 @@
-const { SlashCommandBuilder } = require('@discordjs/builders')
+const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ChannelType, MessageFlags } = require('discord.js')
 const { foemp } = require('../helpers/foemp')
 const { reply, defer } = require('../helpers/interactionHelper')
 const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
 const { CRON_REGEX_SYNTAX } = require('../helpers/constants')
 const { addPurgerAndStartTask, removePurgeChannelTask } = require('../tasks/purgeChannel')
-const { EmbedBuilder, PermissionsBitField } = require('discord.js')
-const { ChannelType } = require('discord-api-types/v9')
 
 const cronSyntaxRegex = CRON_REGEX_SYNTAX
 
@@ -108,7 +106,7 @@ module.exports = {
       )
     ),
   async execute (interaction) {
-    await defer(interaction, { ephemeral: true })
+    await defer(interaction, { flags: MessageFlags.Ephemeral })
 
     switch (interaction.options.getSubcommand()) {
       case 'add':

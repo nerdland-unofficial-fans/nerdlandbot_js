@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('@discordjs/builders')
+const { SlashCommandBuilder } = require('discord.js')
 const { reply, defer } = require('../helpers/interactionHelper')
 
 module.exports = {
@@ -45,7 +45,7 @@ module.exports = {
       content: onlyShowOnline === null
         ? `Er ${memberCount === 1 ? 'zit' : 'zitten'} momenteel ${amountOfUsers} in ${channelOrServer}!`
         : `Er ${memberCount === 1 ? 'is' : 'zijn'} momenteel ${amountOfUsers} ${onlyShowOnline ? 'online' : 'offline'} in ${channelOrServer}!`,
-      allowedMentions: { repliedUser: false, ephemeral: true }
+      allowedMentions: { repliedUser: false }
     })
   }
 }

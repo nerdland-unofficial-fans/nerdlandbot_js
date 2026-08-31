@@ -76,7 +76,7 @@ async function removeAdmin (interaction) {
   )
 
   const followMsg = await interaction.followUp({ content: question, components: [actions] })
-  const followInteraction = await followMsg.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, componentType: ComponentType.Button, time: DEFAULT_TIMEOUT, ephemeral: true })
+  const followInteraction = await followMsg.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, componentType: ComponentType.Button, time: DEFAULT_TIMEOUT })
   await defer(followInteraction)
   await reply(interaction, { content: question, components: [] })
   switch (followInteraction.customId) {

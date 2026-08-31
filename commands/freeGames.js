@@ -1,10 +1,8 @@
-const { SlashCommandBuilder } = require('@discordjs/builders')
+const { SlashCommandBuilder, EmbedBuilder, ChannelType, MessageFlags } = require('discord.js')
 const { foemp } = require('../helpers/foemp')
 const { reply, defer } = require('../helpers/interactionHelper')
 const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
 const { addFreeGamesNotifierAndStartTask, removeFreeGamesNotifierTask } = require('../tasks/freeGamesNotifier')
-const { EmbedBuilder } = require('discord.js')
-const { ChannelType } = require('discord-api-types/v9')
 
 async function addNewFreeGamesNotifier (interaction) {
   if (!await verifyAdmin(interaction)) { return }
@@ -82,7 +80,7 @@ module.exports = {
       .setDescription('Verwijdert de gratis games melder.')),
 
   async execute (interaction) {
-    await defer(interaction, { ephemeral: true })
+    await defer(interaction, { flags: MessageFlags.Ephemeral })
 
     switch (interaction.options.getSubcommand()) {
       case 'add':
