@@ -1,12 +1,25 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
-const { PermissionsBitField } = require('discord.js')
+const { ChannelType, PermissionsBitField } = require('discord.js')
 const { isExempt, isModerator, onBanTrapMessageAsync } = require('../eventHandlers/onBanTrapMessage')
 const { getGuild } = require('../helpers/guildData')
+const { BAN_TRAP_MAX_DELETE_HOURS } = require('../helpers/constants')
+const settingsCommand = require('../commands/settings')
 
 function memberWithPermissions (...permissions) {
   return { permissions: new PermissionsBitField(permissions) }
 }
+
+test('ban trap command accepts text channels and a bounded history', () => {
+  const command = settingsCommand.data.toJSON()
+  const setBanTrap = command.options.find(option => option.name === 'set_ban_trap')
+  const channel = setBanTrap.options.find(option => option.name === 'channel')
+  const deleteHistory = setBanTrap.options.find(option => option.name === 'delete_history_hours')
+
+  assert.deepEqual(channel.channel_types, [ChannelType.GuildText])
+  assert.equal(deleteHistory.min_value, 0)
+  assert.equal(deleteHistory.max_value, BAN_TRAP_MAX_DELETE_HOURS)
+})
 
 test('ban trap exempts Discord moderators', () => {
   assert.equal(isModerator(memberWithPermissions(PermissionsBitField.Flags.Administrator)), true)
