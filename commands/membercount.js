@@ -1,10 +1,11 @@
-const { SlashCommandBuilder } = require('discord.js')
+const { SlashCommandBuilder, InteractionContextType } = require('discord.js')
 const { reply, defer } = require('../helpers/interactionHelper')
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('membercount')
     .setDescription('Telt het aantal leden in deze discord.')
+    .setContexts(InteractionContextType.Guild)
     .addBooleanOption((useroption) =>
       useroption.setName('online').setDescription('toon enkel online gebruikers [optioneel]')
     )

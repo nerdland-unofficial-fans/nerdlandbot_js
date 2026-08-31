@@ -17,6 +17,12 @@ const DISCORD_TOKEN = process.env.DISCORD_TOKEN
 const CLIENT_ID = process.env.CLIENT_ID
 const GUILD_ID = process.env.GUILD_ID
 
+if (!DISCORD_TOKEN) {
+  const err = new Error('Failed to start bot! No DISCORD_TOKEN found in .env file.')
+  log.error(err)
+  throw err
+}
+
 if (CLIENT_ID) {
   log.info(`Start bot with client id '${CLIENT_ID}'.`)
 } else {
@@ -79,21 +85,21 @@ async function executeCommand (interaction) {
     await command.execute(interaction)
   } catch (error) {
     log.error(error)
-    const reply = { content: `Da kennek nie ${foemp(interaction)}!`, flags: MessageFlags.Ephemeral }
+    const content = `Da kennek nie ${foemp(interaction)}!`
     if (interaction.deferred || interaction.replied) {
-      await interaction.editReply(reply)
+      await interaction.editReply({ content })
     } else {
-      await interaction.reply(reply)
+      await interaction.reply({ content, flags: MessageFlags.Ephemeral })
     }
   }
 }
 
 async function populateAutocomplete (interaction) {
-  addAutocompleteOptions(interaction)
+  await addAutocompleteOptions(interaction)
 }
 
 async function handleModalSubmit (interaction) {
-  modalHelper(interaction)
+  await modalHelper(interaction)
 }
 
 // Notify progress
@@ -105,12 +111,19 @@ client.once(Events.ClientReady, readyClient => {
 })
 
 client.on(Events.InteractionCreate, async interaction => {
-  if (interaction.isChatInputCommand()) {
-    executeCommand(interaction)
-  } else if (interaction.isAutocomplete()) {
-    populateAutocomplete(interaction)
-  } else if (interaction.isModalSubmit()) {
-    handleModalSubmit(interaction)
+  try {
+    if (interaction.isChatInputCommand()) {
+      await executeCommand(interaction)
+    } else if (interaction.isAutocomplete()) {
+      await populateAutocomplete(interaction)
+    } else if (interaction.isModalSubmit()) {
+      await handleModalSubmit(interaction)
+    }
+  } catch (error) {
+    log.error(error)
+    if (interaction.isAutocomplete() && !interaction.responded) {
+      await interaction.respond([])
+    }
   }
 })
 
@@ -123,4 +136,4 @@ client.on(Events.GuildMemberAdd, async member => {
 })
 
 // Authenticate
-client.login(process.env.DISCORD_TOKEN)
+client.login(DISCORD_TOKEN)

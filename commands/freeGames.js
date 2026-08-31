@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ChannelType, MessageFlags } = require('discord.js')
+const { SlashCommandBuilder, EmbedBuilder, ChannelType, MessageFlags, InteractionContextType } = require('discord.js')
 const { foemp } = require('../helpers/foemp')
 const { reply, defer } = require('../helpers/interactionHelper')
 const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
@@ -59,6 +59,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('freegames')
     .setDescription('Laat wekelijks op vrijdag weten welke gratis games beschikbaar zijn op Epic Games Store.')
+    .setContexts(InteractionContextType.Guild)
 
     .addSubcommand(subcommand => subcommand
       .setName('add')

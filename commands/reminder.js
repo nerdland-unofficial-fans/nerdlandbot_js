@@ -36,6 +36,6 @@ module.exports = {
     .setContexts(InteractionContextType.Guild),
 
   async execute (interaction) {
-    setReminder(interaction)
+    await setReminder(interaction)
   }
 }

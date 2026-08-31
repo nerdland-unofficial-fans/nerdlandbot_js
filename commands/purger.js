@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ChannelType, MessageFlags } = require('discord.js')
+const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ChannelType, MessageFlags, InteractionContextType } = require('discord.js')
 const { foemp } = require('../helpers/foemp')
 const { reply, defer } = require('../helpers/interactionHelper')
 const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
@@ -79,6 +79,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('purger')
     .setDescription('Purger functionaliteit. Een purger wist regelmatig oude berichten.')
+    .setContexts(InteractionContextType.Guild)
     .addSubcommand(subcommand => subcommand
       .setName('add')
       .setDescription('Voegt een purger taak toe voor dit kanaal. Die wist regelmatig oude berichten.')

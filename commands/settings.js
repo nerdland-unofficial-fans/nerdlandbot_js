@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ChannelType } = require('discord.js')
+const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ChannelType, InteractionContextType } = require('discord.js')
 const { reply, defer } = require('../helpers/interactionHelper')
 const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
 const { foemp } = require('../helpers/foemp')
@@ -71,6 +71,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('settings')
     .setDescription('Instellingen (Admin functies)')
+    .setContexts(InteractionContextType.Guild)
     .addSubcommand(subcommand => subcommand
       .setName('set_new_member_notif_number')
       .setDescription('Zet na hoeveel nieuwe leden de bot het aantal plaatst in het notificatie kanaal')
