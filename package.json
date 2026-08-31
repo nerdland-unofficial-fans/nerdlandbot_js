@@ -4,7 +4,8 @@
   "description": "A discord bot for the nNerdland community",
   "main": "nerdlandbot.js",
   "scripts": {
-    "test": "standard && echo \"standard-js analysis found no issues!\" && exit 0",
+    "lint": "standard",
+    "test": "npm run lint && node --test",
     "prepare": "husky"
   },
   "repository": {
