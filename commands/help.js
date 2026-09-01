@@ -1,7 +1,6 @@
-const { SlashCommandBuilder } = require('@discordjs/builders')
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js')
 const { reply, defer } = require('../helpers/interactionHelper')
 const { getAllCommands, getAllCommandsSync } = require('../helpers/metadataHelper')
-const { EmbedBuilder } = require('discord.js')
 
 async function buildHelpContent () {
   const embed = new EmbedBuilder()

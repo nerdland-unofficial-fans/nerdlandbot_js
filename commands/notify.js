@@ -1,8 +1,7 @@
-const { SlashCommandBuilder } = require('@discordjs/builders')
+const { SlashCommandBuilder, EmbedBuilder, InteractionContextType } = require('discord.js')
 const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
 const { foemp } = require('../helpers/foemp')
 const { reply, defer, sendToChannel } = require('../helpers/interactionHelper')
-const { EmbedBuilder } = require('discord.js')
 const { getUserNameFromIdAsync, getTagFromId } = require('../helpers/userHelper')
 const { getNotifyTags } = require('../helpers/getNotifyTags')
 const { caseInsensitiveSort } = require('../helpers/sortHelper')
@@ -184,6 +183,7 @@ async function notifyList (interaction) {
     tags = await getNotifyTags(notifyLists, listName)
   } catch (error) {
     await reply(interaction, error.message)
+    return
   }
 
   // check wheter or not message is too long
@@ -242,6 +242,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('list')
     .setDescription('lijst functionaliteit.')
+    .setContexts(InteractionContextType.Guild)
 
     .addSubcommand(subcommand => subcommand
       .setName('add')

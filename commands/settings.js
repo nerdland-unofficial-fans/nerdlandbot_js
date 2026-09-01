@@ -1,9 +1,7 @@
-const { SlashCommandBuilder } = require('@discordjs/builders')
+const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ChannelType, InteractionContextType } = require('discord.js')
 const { reply, defer } = require('../helpers/interactionHelper')
 const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
-const { EmbedBuilder, PermissionsBitField } = require('discord.js')
 const { foemp } = require('../helpers/foemp')
-const { ChannelType } = require('discord-api-types/v9')
 
 async function setMemberNotificationChannel (interaction) {
   const channel = interaction.options.getChannel('channel')
@@ -73,6 +71,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('settings')
     .setDescription('Instellingen (Admin functies)')
+    .setContexts(InteractionContextType.Guild)
     .addSubcommand(subcommand => subcommand
       .setName('set_new_member_notif_number')
       .setDescription('Zet na hoeveel nieuwe leden de bot het aantal plaatst in het notificatie kanaal')

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('@discordjs/builders')
+const { SlashCommandBuilder } = require('discord.js')
 const { reply } = require('../helpers/interactionHelper')
 const { WOMBATS_DIR_NAME } = require('../helpers/constants')
 const log = require('../helpers/logger')

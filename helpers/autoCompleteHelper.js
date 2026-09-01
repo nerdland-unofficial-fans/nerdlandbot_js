@@ -3,10 +3,8 @@ const { getGuild } = require('../helpers/guildData')
 const { caseInsensitiveSort } = require('./sortHelper')
 const { stringIncludes } = require('./stringHelper')
 const { AUTOCOMPLETE_MAX_RESULTS } = require('./constants')
-const { defer } = require('./interactionHelper')
 
 async function addAutocompleteOptions (interaction) {
-  defer(interaction)
   switch (interaction.commandName) {
     case 'list':
       await addNotifyAutoCompleteOptions(interaction)
@@ -57,7 +55,7 @@ async function getNotifyListsForAutocomplete (interaction, filter) {
   const guild = await getGuild(interaction.guildId)
   const entries = Object.entries(guild.notifyLists)
   if (entries.length === 0) {
-    return null
+    return []
   }
 
   const filtered = []
@@ -67,7 +65,7 @@ async function getNotifyListsForAutocomplete (interaction, filter) {
     }
   }
   if (filtered.length === 0) {
-    return null
+    return []
   }
 
   return filtered
