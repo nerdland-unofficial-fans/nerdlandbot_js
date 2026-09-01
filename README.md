@@ -8,6 +8,7 @@ JavaScript Discord bot developed by the Nerdland fan community.
 - Notification lists and subscriptions
 - Reminders through a server channel or DM
 - Scheduled channel cleanup
+- Configurable ban-trap channels
 - Epic Games Store free-game notifications
 - Member counts and member milestone notifications
 - Bot-admin and server settings
@@ -37,7 +38,8 @@ Use `/help` in Discord for the complete command list.
    - Embed Links
    - Attach Files
    - Read Message History
-   - Manage Messages, when using the purger
+   - Manage Messages, when using the purger or ban trap
+   - Ban Members, when using the ban trap
 6. Open the generated URL and invite the bot to your test server.
 
 ## Configuration
@@ -117,11 +119,23 @@ Husky installs a pre-commit hook through `npm ci` and runs the test command befo
 
 ## Privacy
 
-The bot does not request Discord's Message Content intent and does not parse regular chat messages. It processes slash commands, interactions, member events, and presence information required by enabled features.
+The bot does not request Discord's Message Content intent and does not inspect regular message contents. It processes slash commands, interactions, member events, presence information, and message metadata required by enabled features. When a ban trap is enabled, it reacts to messages based only on author and channel.
 
 Guild configuration is stored locally as JSON. Depending on used features, this can include Discord user IDs, bot-admin IDs, notification subscriptions, channel IDs, schedules, and reminder text. Reminder text remains stored until the reminder is delivered. Logs contain technical and error information used for operation and debugging.
 
 The bot does not track reactions or build profiles from normal Discord activity.
+
+## Ban trap
+
+Server admins, or bot admins with the `Ban Members` permission, can configure a text channel where posting immediately deletes the triggering message and bans the author:
+
+```text
+/settings set_ban_trap channel:#channel delete_history_hours:2
+```
+
+`delete_history_hours` is optional, defaults to 2, and accepts 0–24 hours. Discord removes that member's recent message history across the server as part of the ban.
+
+Server moderators, server administrators, and configured bot admins are exempt. Disable the feature with `/settings clear_ban_trap`.
 
 ## Contributing
 

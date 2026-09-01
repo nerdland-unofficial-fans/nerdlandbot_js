@@ -6,6 +6,7 @@ const log = require('./helpers/logger')
 const { foemp } = require('./helpers/foemp')
 const { startTasksAsync } = require('./tasks')
 const { onMemberJoinAsync } = require('./eventHandlers/onMemberJoin')
+const { onBanTrapMessageAsync } = require('./eventHandlers/onBanTrapMessage')
 const { getAllCommandsSync } = require('./helpers/metadataHelper')
 const { addAutocompleteOptions } = require('./helpers/autoCompleteHelper')
 const { modalHelper } = require('./helpers/modalHelper')
@@ -38,6 +39,7 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildPresences,
     GatewayIntentBits.GuildVoiceStates
   ]
@@ -130,6 +132,14 @@ client.on(Events.InteractionCreate, async interaction => {
 client.on(Events.GuildMemberAdd, async member => {
   try {
     await onMemberJoinAsync(member, client)
+  } catch (error) {
+    log.error(error)
+  }
+})
+
+client.on(Events.MessageCreate, async message => {
+  try {
+    await onBanTrapMessageAsync(message)
   } catch (error) {
     log.error(error)
   }
