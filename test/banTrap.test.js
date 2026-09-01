@@ -2,8 +2,8 @@ const test = require('node:test')
 const assert = require('node:assert/strict')
 const { ChannelType, PermissionsBitField } = require('discord.js')
 const { isExempt, isModerator, onBanTrapMessageAsync } = require('../eventHandlers/onBanTrapMessage')
-const { getGuild } = require('../helpers/guildData')
-const { BAN_TRAP_MAX_DELETE_HOURS } = require('../helpers/constants')
+const { getDeleteHistoryHours, getGuild } = require('../helpers/guildData')
+const { BAN_TRAP_DEFAULT_DELETE_HOURS, BAN_TRAP_MAX_DELETE_HOURS } = require('../helpers/constants')
 const settingsCommand = require('../commands/settings')
 
 function memberWithPermissions (...permissions) {
@@ -19,6 +19,14 @@ test('ban trap command accepts text channels and a bounded history', () => {
   assert.deepEqual(channel.channel_types, [ChannelType.GuildText])
   assert.equal(deleteHistory.min_value, 0)
   assert.equal(deleteHistory.max_value, BAN_TRAP_MAX_DELETE_HOURS)
+})
+
+test('ban trap delete history uses configured, bounded, or default hours', () => {
+  assert.equal(getDeleteHistoryHours({ banTrap: { deleteHistoryHours: 12 } }), 12)
+  assert.equal(getDeleteHistoryHours({ banTrap: { deleteHistoryHours: -1 } }), 0)
+  assert.equal(getDeleteHistoryHours({ banTrap: { deleteHistoryHours: 25 } }), BAN_TRAP_MAX_DELETE_HOURS)
+  assert.equal(getDeleteHistoryHours({ banTrap: { deleteHistoryHours: 'invalid' } }), BAN_TRAP_DEFAULT_DELETE_HOURS)
+  assert.equal(getDeleteHistoryHours({ banTrap: null }), BAN_TRAP_DEFAULT_DELETE_HOURS)
 })
 
 test('ban trap exempts Discord moderators', () => {

@@ -1,6 +1,5 @@
 const { PermissionsBitField } = require('discord.js')
-const { getGuild } = require('../helpers/guildData')
-const { BAN_TRAP_DEFAULT_DELETE_HOURS, BAN_TRAP_MAX_DELETE_HOURS } = require('../helpers/constants')
+const { getDeleteHistoryHours, getGuild } = require('../helpers/guildData')
 const log = require('../helpers/logger')
 
 const MODERATOR_PERMISSIONS = [
@@ -46,10 +45,7 @@ async function onBanTrapMessageAsync (message) {
     return
   }
 
-  const configuredHours = Number(guildData.banTrap.deleteHistoryHours)
-  const deleteHistoryHours = Number.isFinite(configuredHours)
-    ? Math.min(Math.max(configuredHours, 0), BAN_TRAP_MAX_DELETE_HOURS)
-    : BAN_TRAP_DEFAULT_DELETE_HOURS
+  const deleteHistoryHours = getDeleteHistoryHours(guildData)
 
   await member.ban({
     deleteMessageSeconds: deleteHistoryHours * 60 * 60,
