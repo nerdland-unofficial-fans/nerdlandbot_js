@@ -1,10 +1,8 @@
-const { SlashCommandBuilder } = require('@discordjs/builders')
+const { SlashCommandBuilder, EmbedBuilder, ChannelType, MessageFlags, InteractionContextType } = require('discord.js')
 const { foemp } = require('../helpers/foemp')
 const { reply, defer } = require('../helpers/interactionHelper')
 const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
 const { addFreeGamesNotifierAndStartTask, removeFreeGamesNotifierTask } = require('../tasks/freeGamesNotifier')
-const { EmbedBuilder } = require('discord.js')
-const { ChannelType } = require('discord-api-types/v9')
 
 async function addNewFreeGamesNotifier (interaction) {
   if (!await verifyAdmin(interaction)) { return }
@@ -25,7 +23,7 @@ async function addNewFreeGamesNotifier (interaction) {
 
   guild.freeGamesChecker = { channelId: channel.id, listName }
   await saveGuild(guild)
-  addFreeGamesNotifierAndStartTask(guild.id, guild.freeGamesChecker)
+  addFreeGamesNotifierAndStartTask(guild.guildId, guild.freeGamesChecker)
   await reply(interaction, `De gratis games melder is aangemaakt op kanaal ${channel}.`)
 }
 
@@ -61,6 +59,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('freegames')
     .setDescription('Laat wekelijks op vrijdag weten welke gratis games beschikbaar zijn op Epic Games Store.')
+    .setContexts(InteractionContextType.Guild)
 
     .addSubcommand(subcommand => subcommand
       .setName('add')
@@ -82,7 +81,7 @@ module.exports = {
       .setDescription('Verwijdert de gratis games melder.')),
 
   async execute (interaction) {
-    await defer(interaction, { ephemeral: true })
+    await defer(interaction, { flags: MessageFlags.Ephemeral })
 
     switch (interaction.options.getSubcommand()) {
       case 'add':

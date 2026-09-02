@@ -29,18 +29,23 @@ async function initFreeGamesTasksAsync (client) {
 }
 
 async function checkGames (guildId, channelId, listName) {
-  const channel = await _client.channels.cache
-    .find((channel) => channel.id === channelId)
-    ?.fetch()
+  const channel = await _client.channels.fetch(channelId)
+  if (!channel?.isSendable()) {
+    log.error(`Free games notification channel <#${channelId}> is unavailable`)
+    return
+  }
 
   let allGames
   try {
-    allGames = (await axios.get(EPIC_GAMES_API_URL))?.data?.data?.Catalog
+    allGames = (await axios.get(EPIC_GAMES_API_URL)).data?.data?.Catalog
       ?.searchStore?.elements
-    if (!allGames) {
-      throw new Error('Error getting free games list from Epic Games Store')
+    if (!Array.isArray(allGames)) {
+      throw new Error('Invalid response from Epic Games Store')
     }
-  } catch (error) {}
+  } catch (error) {
+    log.error(`Error getting free games list from Epic Games Store: ${error}`)
+    return
+  }
 
   const games = allGames.reduce(
     (acc, currentGame) => {
@@ -140,7 +145,7 @@ async function removeFreeGamesNotifierTask (guildId) {
   }
   tasks[guildId].stop()
   delete tasks[guildId]
-  log.info('stopped and removed Free Games task from guild guildId.')
+  log.info(`stopped and removed Free Games task from guild ${guildId}.`)
 }
 
 function stopAllFreeGamesTasks () {

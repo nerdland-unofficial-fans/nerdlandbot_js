@@ -1,4 +1,4 @@
-const { PermissionsBitField, ButtonBuilder, ActionRowBuilder, ButtonStyle, SlashCommandBuilder, ComponentType } = require('discord.js')
+const { PermissionsBitField, ButtonBuilder, ActionRowBuilder, ButtonStyle, SlashCommandBuilder, ComponentType, InteractionContextType } = require('discord.js')
 const { getGuild, verifyAdmin, AddAdminToGuild, removeAdminFromGuild } = require('../helpers/guildData')
 const { foemp } = require('../helpers/foemp')
 const { reply, defer } = require('../helpers/interactionHelper')
@@ -76,7 +76,7 @@ async function removeAdmin (interaction) {
   )
 
   const followMsg = await interaction.followUp({ content: question, components: [actions] })
-  const followInteraction = await followMsg.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, componentType: ComponentType.Button, time: DEFAULT_TIMEOUT, ephemeral: true })
+  const followInteraction = await followMsg.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, componentType: ComponentType.Button, time: DEFAULT_TIMEOUT })
   await defer(followInteraction)
   await reply(interaction, { content: question, components: [] })
   switch (followInteraction.customId) {
@@ -96,6 +96,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('admins')
     .setDescription('bot-admin functionaliteiten')
+    .setContexts(InteractionContextType.Guild)
     .addSubcommand(subcommand => subcommand
       .setName('show')
       .setDescription('Toont de lijst van bot-admins.'))

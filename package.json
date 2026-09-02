@@ -4,8 +4,9 @@
   "description": "A discord bot for the nNerdland community",
   "main": "nerdlandbot.js",
   "scripts": {
-    "test": "standard && echo \"standard-js analysis found no issues!\" && exit 0",
-    "prepare": "husky install"
+    "lint": "standard",
+    "test": "npm run lint && node --test",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -13,21 +14,20 @@
   },
   "author": "",
   "license": "MIT",
+  "engines": {
+    "node": ">=24"
+  },
   "dependencies": {
-    "@discordjs/builders": "^1.7.0",
-    "@discordjs/rest": "^2.2.0",
-    "@js-joda/core": "^5.6.1",
-    "@js-joda/timezone": "^2.18.2",
-    "axios": "^1.4.0",
-    "cron": "^3.1.6",
-    "axios": "^1.6.5",
-    "discord-api-types": "^0.37.67",
-    "discord.js": "^14.14.1",
-    "dotenv": "^16.3.2",
-    "winston": "^3.11.0"
+    "@js-joda/core": "^6.1.0",
+    "@js-joda/timezone": "^2.25.2",
+    "axios": "^1.20.0",
+    "cron": "^4.4.0",
+    "discord.js": "^14.27.0",
+    "dotenv": "^17.4.2",
+    "winston": "^3.19.0"
   },
   "devDependencies": {
-    "husky": "^8.0.3",
-    "standard": "*"
+    "husky": "^9.1.7",
+    "standard": "^17.1.2"
   }
 }

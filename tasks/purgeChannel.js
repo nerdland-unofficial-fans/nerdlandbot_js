@@ -1,4 +1,3 @@
-
 const cron = require('cron')
 const log = require('../helpers/logger')
 const { getAllGuilds } = require('../helpers/guildData')
@@ -120,13 +119,13 @@ function addPurgerAndStartTask (purger) {
         }
 
         // done fetching all messages, now actually delete them individually
-        const deleteMessagePromises = messagesToDeleteIndividually.map(async message => {
-          await channelToPurge.messages.delete(message)
-          countDeletedMessage++
-        })
-        const results = await Promise.allSettled(deleteMessagePromises)
-        if (results.includes('rejected')) {
-          log.warn(`Something went wrong purging all messages of channel ${channelToPurge.name} <#${purger.channelId}>`)
+        for (const message of messagesToDeleteIndividually.values()) {
+          try {
+            await channelToPurge.messages.delete(message)
+            countDeletedMessage++
+          } catch (error) {
+            log.warn(`Failed to delete message ${message.id} from channel <#${purger.channelId}>: ${error}`)
+          }
         }
 
         log.info(`Purge complete, deleted ${countDeletedMessage} messages of channel ${channelToPurge.name} <#${purger.channelId}>`)
@@ -145,7 +144,7 @@ function stopAllPurgeChannelTasks () {
   Object.values(tasks).forEach(task => task.stop())
 }
 function startAllPurgeChannelTasks () {
-  Object.values(tasks).forEach(task => task.stop())
+  Object.values(tasks).forEach(task => task.start())
 }
 
 module.exports = { initPurgeChannelTasksAsync, startAllPurgeChannelTasks, stopAllPurgeChannelTasks, addPurgerAndStartTask, removePurgeChannelTask }

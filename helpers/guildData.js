@@ -69,6 +69,14 @@ function initGuild (guild) {
   if (!guild.memberNotificationNumber) { guild.memberNotificationNumber = constants.DEFAULT_MEMBER_NOTIFICATION_NUMBER }
   if (!guild.reminders) { guild.reminders = {} }
   if (!guild.reminderChannel) { guild.reminderChannel = '' }
+  if (!guild.banTrap) { guild.banTrap = null }
+}
+
+function getDeleteHistoryHours (guildData) {
+  const configuredHours = Number(guildData.banTrap?.deleteHistoryHours)
+  return Number.isFinite(configuredHours)
+    ? Math.min(Math.max(configuredHours, 0), constants.BAN_TRAP_MAX_DELETE_HOURS)
+    : constants.BAN_TRAP_DEFAULT_DELETE_HOURS
 }
 
 async function getAllGuilds () {
@@ -111,6 +119,7 @@ async function removeAdminFromGuild (guild, userId) {
 }
 
 module.exports = {
+  getDeleteHistoryHours,
   getGuild,
   saveGuild,
   verifyAdmin,

@@ -1,13 +1,9 @@
-const { SlashCommandBuilder } = require('@discordjs/builders')
+const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ChannelType, MessageFlags, InteractionContextType } = require('discord.js')
 const { foemp } = require('../helpers/foemp')
 const { reply, defer } = require('../helpers/interactionHelper')
 const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
-const { CRON_REGEX_SYNTAX } = require('../helpers/constants')
+const { validateCronExpression } = require('cron')
 const { addPurgerAndStartTask, removePurgeChannelTask } = require('../tasks/purgeChannel')
-const { EmbedBuilder, PermissionsBitField } = require('discord.js')
-const { ChannelType } = require('discord-api-types/v9')
-
-const cronSyntaxRegex = CRON_REGEX_SYNTAX
 
 async function addNewPurger (interaction) {
   if (!await verifyAdmin(interaction)) { return }
@@ -25,7 +21,7 @@ async function addNewPurger (interaction) {
     await reply(interaction, `Dit gaat niet want ik heb geen rechten om berichten te wissen in dat kanaal, ${foemp(interaction)}!`)
     return
   }
-  if (!cronSyntaxRegex.test(cronTime)) {
+  if (!validateCronExpression(cronTime).valid) {
     await reply(interaction, `Uw cron syntax is niet correct, ${foemp(interaction)}!`)
     return
   }
@@ -83,6 +79,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('purger')
     .setDescription('Purger functionaliteit. Een purger wist regelmatig oude berichten.')
+    .setContexts(InteractionContextType.Guild)
     .addSubcommand(subcommand => subcommand
       .setName('add')
       .setDescription('Voegt een purger taak toe voor dit kanaal. Die wist regelmatig oude berichten.')
@@ -108,7 +105,7 @@ module.exports = {
       )
     ),
   async execute (interaction) {
-    await defer(interaction, { ephemeral: true })
+    await defer(interaction, { flags: MessageFlags.Ephemeral })
 
     switch (interaction.options.getSubcommand()) {
       case 'add':

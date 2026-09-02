@@ -1,5 +1,4 @@
-const { SlashCommandBuilder } = require('@discordjs/builders')
-const { ModalBuilder, TextInputBuilder, ActionRowBuilder, TextInputStyle } = require('discord.js')
+const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, ActionRowBuilder, TextInputStyle, InteractionContextType } = require('discord.js')
 const { MODAL_IDS } = require('../helpers/constants')
 
 async function setReminder (interaction) {
@@ -34,9 +33,9 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('reminder')
     .setDescription('Stel een herinnering in.')
-    .setDMPermission(false),
+    .setContexts(InteractionContextType.Guild),
 
   async execute (interaction) {
-    setReminder(interaction)
+    await setReminder(interaction)
   }
 }

@@ -1,81 +1,148 @@
-# nerdlandbot_js
-This is a JS-based discord bot developed by the nerdland fan community.
+# Nerdland Bot
 
-# Roadmap
-This bot was setup mostly as an experiment, and there is no clearly defined goal so far.
-If you have any suggestions feel free to log an issue in this repository, any new ideas or challenges are much appreciated.
+JavaScript Discord bot developed by the Nerdland fan community.
 
-# Privacy policy.
-This bot was developed with privacy as one of our core ideals.
-Because of this we have formulated a few statements about the inner workings.
+## Features
 
-The bot will only listen to user commands. 
-We will not parse any user messages, nor track any reactions, unless those made specifically to interact with the bot.
-We will not track any user data, except for your user ID, as this is required to notify you.
-We will not store any data about your messages, reactions, or other actions you take on discord.
+- Slash commands and autocomplete
+- Notification lists and subscriptions
+- Reminders through a server channel or DM
+- Scheduled channel cleanup
+- Configurable ban-trap channels
+- Epic Games Store free-game notifications
+- Member counts and member milestone notifications
+- Bot-admin and server settings
+- Dad jokes, wombat pictures, privacy information, and project help
 
-The logs we keep are strictly for debugging purposes, and will not contain any personal info.
+Use `/help` in Discord for the complete command list.
 
+## Requirements
 
-# Creating your own test bot
-When trying out things, it's best to create your own bot and use that one to test your code. To create your test version of the nerdlandbot:
-- Go to discord.com https://discord.com/login?redirect_to=%2Fdevelopers%2Fapplications and log in.
-- Create a new application eg. "bob-testbot"
-- Switch to the 'Bot' configuration (select 'Bot' on the left panel)
-- Create a bot and give it a name "bob-testbot" for example
-- Make sure you set both 'Presence intent' and 'Server members intent' under 'Privileged Gateway Intents'
+- Node.js 24 or newer
+- npm
+- A Discord application and bot token
 
-# Get your bot invited to servers
-To get your bot invited onto a server, you need to create an invitation URL.
-- Go to your application (see creating your own test bot above)
-- Go to OAuth2, and URL Generator.
-- Make sure you click `bot` and `applications.commands` in scopes
-- Make sure you click `Manage Messages` (or a higher role that also provides this. OR you can also add this permission after your bot joined, via the server settings -> user management) This is needed to be able to purge channels.
-- You'll find the URL to invite your bot on the bottom of that page. Copy it and open the link in a new browser window.
+## Create a test bot
 
-When visiting that page, you'll see a list of servers you have administration rights for. If you have your own server, it will be listed here. 
-If you want to test on the NerdlandBottest server, provide this URL in the #helpdesk channel and kindly ask somebody to accept your bot and create a test channel.
-Alternatively, you will need to acquire a `DISCORD_TOKEN`. It is possible to obtain one with a developer account on Discord.
+1. Open the [Discord Developer Portal](https://discord.com/developers/applications).
+2. Create an application and add a bot.
+3. Open the bot settings and enable these privileged Gateway intents:
+   - Presence Intent
+   - Server Members Intent
+4. Under OAuth2 → URL Generator, select these scopes:
+   - `bot`
+   - `applications.commands`
+5. Select the permissions needed by the enabled features:
+   - View Channels
+   - Send Messages
+   - Embed Links
+   - Attach Files
+   - Read Message History
+   - Manage Messages, when using the purger or ban trap
+   - Ban Members, when using the ban trap
+6. Open the generated URL and invite the bot to your test server.
 
-# Create your .env file
-You need a file to keep your bot token safely. You'll do this by creating a file with name ".env" which must contain following lines (see `.env.EXAMPLE` for an example. you can copy this file to `.env` and fill in your own values): 
+## Configuration
 
-- DISCORD_TOKEN = "bot token"
-- PREFIX = "bot prefix"
-- CLIENT_ID = "user id for the bot"
-- GUILD_ID = "The id for your test-server"
+Copy `.env.EXAMPLE` to `.env` and provide:
 
-**Important note**: The GUILD_ID limits your instance of the bot to your server, but makes sure commands are updated instantly instead of using discords hourly cache. This property should be omitted for production builds!
-
-# Running the bot
-- npm install
-- node nerdlandbot.js
-
-# Code Style
-[![JavaScript Style Guide](https://cdn.rawgit.com/standard/standard/master/badge.svg)](https://github.com/standard/standard)
-
-This project uses JavaScript Standard Style.
-In order to make sure your code is compliant before comitting you can run the following commands
-
+```ini
+DISCORD_TOKEN="your bot token"
+CLIENT_ID="your application ID"
+GUILD_ID="your test server ID"
 ```
-// if standard is not yet installed, run this first
-npm i -g standard
 
-// run the code analysis
+`GUILD_ID` is optional. Set it during development to register commands only in one server. Omit it to register commands globally.
+
+Never commit `.env` or include it in a container image.
+
+## Run locally
+
+```sh
+npm ci
+node nerdlandbot.js
+```
+
+The bot stores guild configuration in `guilds/` and writes logs to `logs/`.
+
+## Run with Docker
+
+The image runs as user ID `1000`. Create writable persistent directories first:
+
+```sh
+mkdir -p guilds logs
+sudo chown -R 1000:1000 guilds logs
+
+docker run --name nerdlandbot \
+  --restart unless-stopped \
+  --env-file .env \
+  -v "$(pwd)/guilds:/usr/src/app/guilds" \
+  -v "$(pwd)/logs:/usr/src/app/logs" \
+  ghcr.io/nerdland-unofficial-fans/nerdlandbot_js:main
+```
+
+Example Docker Compose configuration:
+
+```yaml
+services:
+  nerdlandbot:
+    image: ghcr.io/nerdland-unofficial-fans/nerdlandbot_js:main
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./guilds:/usr/src/app/guilds
+      - ./logs:/usr/src/app/logs
+```
+
+## Development
+
+Run linting and smoke tests:
+
+```sh
 npm test
-
-// if the analysis finds issues, most can be solved automatically
-standard --fix
 ```
 
-We are using [Husky](https://github.com/typicode/husky) to install a [git pre-commit hook](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks) that will run the code analysis before each commit. It will throw an error if the code is not compliant and prevent the commit from being made.
+Run only JavaScript Standard Style checks:
 
-The analysis is run automatically for each branch on the origin, and for each pull request to 'main' or 'develop'.
+```sh
+npm run lint
+```
 
-Failing the standardjs analysis will prevent a branch from being merged.
+Automatically fix supported style issues:
 
+```sh
+npx standard --fix
+```
 
+Husky installs a pre-commit hook through `npm ci` and runs the test command before each commit. CI also runs tests for pushes and pull requests.
 
-# Links
-* [Nerdland website](https://nerdland.be)
-* [Nerdland merch](https://www.mistert.be/nerdland)
+## Privacy
+
+The bot does not request Discord's Message Content intent and does not inspect regular message contents. It processes slash commands, interactions, member events, presence information, and message metadata required by enabled features. When a ban trap is enabled, it reacts to messages based only on author and channel.
+
+Guild configuration is stored locally as JSON. Depending on used features, this can include Discord user IDs, bot-admin IDs, notification subscriptions, channel IDs, schedules, and reminder text. Reminder text remains stored until the reminder is delivered. Logs contain technical and error information used for operation and debugging.
+
+The bot does not track reactions or build profiles from normal Discord activity.
+
+## Ban trap
+
+Server admins, or bot admins with the `Ban Members` permission, can configure a text channel where posting immediately deletes the triggering message and bans the author:
+
+```text
+/settings set_ban_trap channel:#channel delete_history_hours:2
+```
+
+`delete_history_hours` is optional, defaults to 2, and accepts 0–24 hours. Discord removes that member's recent message history across the server as part of the ban.
+
+Server moderators, server administrators, and configured bot admins are exempt. Disable the feature with `/settings clear_ban_trap`.
+
+## Contributing
+
+Suggestions and contributions are welcome. Open an issue when proposing a change or when unsure where to begin.
+
+## Links
+
+- [Nerdland website](https://nerdland.be)
+- [Nerdland merch](https://www.mistert.be/nerdland)
+- [Project issues](https://github.com/nerdland-unofficial-fans/nerdlandbot_js/issues)
