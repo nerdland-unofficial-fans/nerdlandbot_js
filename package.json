@@ -18,7 +18,7 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@js-joda/core": "^6.1.0",
+    "@js-joda/core": "^6.2.0",
     "@js-joda/timezone": "^2.25.2",
     "axios": "^1.20.0",
     "cron": "^4.4.0",
