@@ -4,6 +4,7 @@ const { reply, defer } = require('../helpers/interactionHelper')
 const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
 const { validateCronExpression } = require('cron')
 const { addPurgerAndStartTask, removePurgeChannelTask } = require('../tasks/purgeChannel')
+const { logAdminEvent } = require('../helpers/adminLog')
 
 async function addNewPurger (interaction) {
   if (!await verifyAdmin(interaction)) { return }
@@ -36,6 +37,11 @@ async function addNewPurger (interaction) {
   await saveGuild(guild)
   addPurgerAndStartTask(newPurger)
   await reply(interaction, `De purger is aangemaakt op kanaal ${channel}. max_age: ${maxAge} uur. \`${cronTime}\``)
+  await logAdminEvent(interaction.guild, {
+    title: 'Purger aangemaakt',
+    description: `Kanaal: ${channel}, max ${maxAge} uur, \`${cronTime}\``,
+    fields: [{ name: 'Door', value: `<@${interaction.user.id}> (${interaction.user.tag})` }]
+  })
 }
 
 async function showAllPurgers (interaction) {
@@ -73,6 +79,12 @@ async function removePurger (interaction) {
   delete guild.purgers[channel.id]
   await saveGuild(guild)
   await reply(interaction, 'De purger voor dit kanaal is gestopt en verwijderd.')
+  await logAdminEvent(interaction.guild, {
+    title: 'Purger verwijderd',
+    description: `Kanaal: ${channel}`,
+    level: 'warning',
+    fields: [{ name: 'Door', value: `<@${interaction.user.id}> (${interaction.user.tag})` }]
+  })
 }
 
 module.exports = {
