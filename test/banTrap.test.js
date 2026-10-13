@@ -4,6 +4,7 @@ const { ChannelType, PermissionsBitField } = require('discord.js')
 const { isExempt, isModerator, onBanTrapMessageAsync } = require('../eventHandlers/onBanTrapMessage')
 const { getDeleteHistoryHours, getGuild } = require('../helpers/guildData')
 const { BAN_TRAP_DEFAULT_DELETE_HOURS, BAN_TRAP_MAX_DELETE_HOURS } = require('../helpers/constants')
+const { logAdminEvent } = require('../helpers/adminLog')
 const settingsCommand = require('../commands/settings')
 
 function memberWithPermissions (...permissions) {
@@ -50,8 +51,17 @@ test('ban trap deletes the trigger and bans the member', async () => {
   const guildData = await getGuild(guildId)
   guildData.banTrap = { channelId, deleteHistoryHours: 24 }
 
+  guildData.adminLogChannelId = 'log-channel'
+
   let deleted = false
   let banOptions
+  const logged = []
+  const guild = {
+    id: guildId,
+    channels: {
+      cache: new Map([['log-channel', { isTextBased: () => true, send: async payload => logged.push(payload) }]])
+    }
+  }
   const member = memberWithPermissions()
   member.id = 'member-id'
   member.bannable = true
@@ -63,12 +73,37 @@ test('ban trap deletes the trigger and bans the member', async () => {
     channelId,
     author: { bot: false, id: member.id },
     member,
+    guild,
     inGuild: () => true,
     delete: async () => { deleted = true }
   })
 
   assert.equal(deleted, true)
   assert.equal(banOptions.deleteMessageSeconds, 24 * 60 * 60)
+  assert.equal(logged.length, 1)
+  assert.equal(logged[0].embeds[0].data.title, 'Banval: lid gebannen')
+  assert.deepEqual(logged[0].allowedMentions, { parse: [] })
+})
+
+test('admin log never throws and skips guilds without a log channel', async () => {
+  const guildId = `admin-log-test-${process.pid}`
+  await getGuild(guildId)
+  let sent = false
+  const guild = { id: guildId, channels: { cache: new Map([['x', { isTextBased: () => true, send: async () => { sent = true } }]]) } }
+
+  await logAdminEvent(guild, { title: 'test' })
+  assert.equal(sent, false)
+
+  const guildData = await getGuild(guildId)
+  guildData.adminLogChannelId = 'missing'
+  guild.channels.fetch = async () => { throw new Error('Unknown Channel') }
+  await logAdminEvent(guild, { title: 'test' })
+})
+
+test('settings command exposes admin log channel subcommands', () => {
+  const names = settingsCommand.data.toJSON().options.map(option => option.name)
+  assert.ok(names.includes('set_admin_log_channel'))
+  assert.ok(names.includes('clear_admin_log_channel'))
 })
 
 test('ban trap ignores direct messages and bots', async () => {
