@@ -70,6 +70,7 @@ function initGuild (guild) {
   if (!guild.reminders) { guild.reminders = {} }
   if (!guild.reminderChannel) { guild.reminderChannel = '' }
   if (!guild.banTrap) { guild.banTrap = null }
+  if (!guild.adminLogChannelId) { guild.adminLogChannelId = '' }
 }
 
 function getDeleteHistoryHours (guildData) {

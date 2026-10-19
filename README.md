@@ -9,6 +9,7 @@ JavaScript Discord bot developed by the Nerdland fan community.
 - Reminders through a server channel or DM
 - Scheduled channel cleanup
 - Configurable ban-trap channels
+- Admin log channel for reviewing moderation and admin actions
 - Epic Games Store free-game notifications
 - Member counts and member milestone notifications
 - Bot-admin and server settings
@@ -136,6 +137,16 @@ Server admins, or bot admins with the `Ban Members` permission, can configure a 
 `delete_history_hours` is optional, defaults to 2, and accepts 0–24 hours. Discord removes that member's recent message history across the server as part of the ban.
 
 Server moderators, server administrators, and configured bot admins are exempt. Disable the feature with `/settings clear_ban_trap`.
+
+## Admin log
+
+Set a text channel where the bot records admin actions for later review:
+
+```text
+/settings set_admin_log_channel channel:#mod-log
+```
+
+Entries (with timestamp and the responsible user) are posted for ban trap bans and failed bans, ban trap and log channel setting changes, bot admin additions and removals, and purger creation and removal. The bot needs `View Channel`, `Send Messages` and `Embed Links` there. Disable with `/settings clear_admin_log_channel`.
 
 ## Contributing
 
