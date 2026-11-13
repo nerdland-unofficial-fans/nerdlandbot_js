@@ -85,6 +85,45 @@ test('ban trap deletes the trigger and bans the member', async () => {
   assert.deepEqual(logged[0].allowedMentions, { parse: [] })
 })
 
+test('ban trap logs rejected bans without reporting success', async () => {
+  const guildId = `ban-trap-failure-test-${process.pid}`
+  const guildData = await getGuild(guildId)
+  guildData.banTrap = { channelId: 'trap-channel', deleteHistoryHours: 2 }
+  guildData.adminLogChannelId = 'log-channel'
+  const logged = []
+  const guild = {
+    id: guildId,
+    channels: {
+      cache: new Map([['log-channel', { isTextBased: () => true, send: async payload => logged.push(payload) }]])
+    }
+  }
+  const member = memberWithPermissions()
+  member.id = 'member-id'
+  member.bannable = true
+  member.ban = async () => { throw new Error('Discord API failure') }
+  let deleted = false
+
+  await assert.doesNotReject(onBanTrapMessageAsync({
+    id: 'message-id',
+    guildId,
+    guild,
+    channelId: 'trap-channel',
+    author: { bot: false, id: member.id },
+    member,
+    inGuild: () => true,
+    delete: async () => { deleted = true }
+  }))
+
+  assert.equal(deleted, true)
+  assert.equal(logged.length, 1)
+  const embed = logged[0].embeds[0].data
+  assert.equal(embed.title, 'Banval: ban mislukt')
+  assert.equal(embed.color, 0xf1c40f)
+  assert.ok(embed.fields.some(field => field.name === 'Gebruiker' && field.value.includes(member.id)))
+  assert.ok(embed.fields.some(field => field.name === 'Kanaal' && field.value === '<#trap-channel>'))
+  assert.deepEqual(logged[0].allowedMentions, { parse: [] })
+})
+
 test('admin log never throws and skips guilds without a log channel', async () => {
   const guildId = `admin-log-test-${process.pid}`
   await getGuild(guildId)
