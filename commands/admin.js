@@ -3,6 +3,7 @@ const { getGuild, verifyAdmin, AddAdminToGuild, removeAdminFromGuild } = require
 const { foemp } = require('../helpers/foemp')
 const { reply, defer } = require('../helpers/interactionHelper')
 const { DEFAULT_TIMEOUT } = require('../helpers/constants')
+const { logAdminEvent } = require('../helpers/adminLog')
 
 async function listAdmins (interaction) {
   const guild = await getGuild(interaction.guildId)
@@ -44,6 +45,11 @@ async function addAdmin (interaction) {
   // Promote the target to bot admin
   await AddAdminToGuild(guild, user.id)
   await reply(interaction, `${member.displayName} is nu een bot admin.`)
+  await logAdminEvent(interaction.guild, {
+    title: 'Bot admin toegevoegd',
+    description: `<@${user.id}> is bot admin geworden.`,
+    fields: [{ name: 'Door', value: `<@${interaction.user.id}> (${interaction.user.tag})` }]
+  })
 }
 
 async function removeAdmin (interaction) {
@@ -87,6 +93,12 @@ async function removeAdmin (interaction) {
       // Demote the bot admin to a regular user
       await removeAdminFromGuild(guild, user.id)
       await reply(followInteraction, { content: `${member.displayName} is geen bot admin meer.`, components: [] })
+      await logAdminEvent(interaction.guild, {
+        title: 'Bot admin verwijderd',
+        description: `<@${user.id}> is geen bot admin meer.`,
+        level: 'warning',
+        fields: [{ name: 'Door', value: `<@${interaction.user.id}> (${interaction.user.tag})` }]
+      })
       break
   }
 }

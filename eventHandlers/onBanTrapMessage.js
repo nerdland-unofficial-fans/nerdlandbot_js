@@ -1,6 +1,7 @@
 const { PermissionsBitField } = require('discord.js')
 const { getDeleteHistoryHours, getGuild } = require('../helpers/guildData')
 const log = require('../helpers/logger')
+const { logAdminEvent } = require('../helpers/adminLog')
 
 const MODERATOR_PERMISSIONS = [
   PermissionsBitField.Flags.Administrator,
@@ -40,19 +41,46 @@ async function onBanTrapMessageAsync (message) {
     log.warn(`Could not delete ban trap message ${message.id}: ${error}`)
   }
 
+  const fields = [
+    { name: 'Gebruiker', value: `<@${member.id}> (${member.user?.tag ?? member.id}, ID: ${member.id})` },
+    { name: 'Kanaal', value: `<#${message.channelId}>` }
+  ]
+
   if (!member.bannable) {
     log.warn(`Could not ban member ${member.id} after posting in ban trap channel ${message.channelId}`)
+    await logAdminEvent(message.guild, {
+      title: 'Banval: ban mislukt',
+      description: 'Het lid kon niet gebannen worden (onvoldoende rechten of hogere rol).',
+      level: 'warning',
+      fields
+    })
     return
   }
 
   const deleteHistoryHours = getDeleteHistoryHours(guildData)
 
-  await member.ban({
-    deleteMessageSeconds: deleteHistoryHours * 60 * 60,
-    reason: `Posted in configured ban trap channel ${message.channelId}`
-  })
+  try {
+    await member.ban({
+      deleteMessageSeconds: deleteHistoryHours * 60 * 60,
+      reason: `Posted in configured ban trap channel ${message.channelId}`
+    })
+  } catch (error) {
+    log.warn(`Could not ban member ${member.id} after posting in ban trap channel ${message.channelId}: ${error}`)
+    await logAdminEvent(message.guild, {
+      title: 'Banval: ban mislukt',
+      description: 'Discord kon de ban niet uitvoeren.',
+      level: 'warning',
+      fields
+    })
+    return
+  }
 
   log.info(`Banned member ${member.id} after posting in ban trap channel ${message.channelId}`)
+  await logAdminEvent(message.guild, {
+    title: 'Banval: lid gebannen',
+    level: 'danger',
+    fields: [...fields, { name: 'Berichtgeschiedenis verwijderd', value: `${deleteHistoryHours} uur` }]
+  })
 }
 
 module.exports = { isExempt, isModerator, onBanTrapMessageAsync }

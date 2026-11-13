@@ -3,6 +3,15 @@ const { reply, defer } = require('../helpers/interactionHelper')
 const { getGuild, saveGuild, verifyAdmin } = require('../helpers/guildData')
 const { foemp } = require('../helpers/foemp')
 const { BAN_TRAP_DEFAULT_DELETE_HOURS, BAN_TRAP_MAX_DELETE_HOURS } = require('../helpers/constants')
+const { logAdminEvent } = require('../helpers/adminLog')
+
+function logSettingChange (interaction, title, description) {
+  return logAdminEvent(interaction.guild, {
+    title,
+    description,
+    fields: [{ name: 'Door', value: `<@${interaction.user.id}> (${interaction.user.tag})` }]
+  })
+}
 
 async function setMemberNotificationChannel (interaction) {
   const channel = interaction.options.getChannel('channel')
@@ -81,6 +90,7 @@ async function setBanTrap (interaction) {
   guildData.banTrap = { channelId: channel.id, deleteHistoryHours }
   await saveGuild(guildData)
   await reply(interaction, `Banval ingesteld op ${channel}. Bij een ban wordt ${deleteHistoryHours} uur berichtgeschiedenis verwijderd.`)
+  await logSettingChange(interaction, 'Banval ingesteld', `Kanaal: ${channel}, ${deleteHistoryHours} uur geschiedenis`)
 }
 
 async function clearBanTrap (interaction) {
@@ -88,6 +98,32 @@ async function clearBanTrap (interaction) {
   guildData.banTrap = null
   await saveGuild(guildData)
   await reply(interaction, 'De banval is uitgeschakeld.')
+  await logSettingChange(interaction, 'Banval uitgeschakeld')
+}
+
+async function setAdminLogChannel (interaction) {
+  const channel = interaction.options.getChannel('channel')
+  if (!channel.permissionsFor(interaction.guild.members.me).has([
+    PermissionsBitField.Flags.ViewChannel,
+    PermissionsBitField.Flags.SendMessages,
+    PermissionsBitField.Flags.EmbedLinks
+  ])) {
+    await reply(interaction, `Dit gaat niet want ik kan daar geen embeds sturen, ${foemp(interaction)}!`)
+    return
+  }
+  const guildData = await getGuild(interaction.guildId)
+  guildData.adminLogChannelId = channel.id
+  await saveGuild(guildData)
+  await reply(interaction, `Ok. Admin logs worden vanaf nu geplaatst in ${channel}.`)
+  await logSettingChange(interaction, 'Admin log kanaal ingesteld', `Kanaal: ${channel}`)
+}
+
+async function clearAdminLogChannel (interaction) {
+  await logSettingChange(interaction, 'Admin log kanaal uitgeschakeld')
+  const guildData = await getGuild(interaction.guildId)
+  guildData.adminLogChannelId = ''
+  await saveGuild(guildData)
+  await reply(interaction, 'Ok. Er worden geen admin logs meer geplaatst.')
 }
 
 async function showSettings (interaction) {
@@ -96,11 +132,13 @@ async function showSettings (interaction) {
   const banTrap = guildData.banTrap
     ? `<#${guildData.banTrap.channelId}> (${guildData.banTrap.deleteHistoryHours} uur geschiedenis)`
     : 'uitgeschakeld'
+  const adminLog = guildData.adminLogChannelId ? `<#${guildData.adminLogChannelId}>` : 'uitgeschakeld'
   const settings = [
     `\u2022 new_member_notif_number: ${guildData.memberNotificationNumber}`,
     `\u2022 new_member_notif_channel: <#${guildData.memberNotificationChannelId}>`,
     `\u2022 reminder_channel: <#${guildData.reminderChannel}>`,
-    `\u2022 ban_trap: ${banTrap}`
+    `\u2022 ban_trap: ${banTrap}`,
+    `\u2022 admin_log_channel: ${adminLog}`
   ]
   embed.setTitle('Settings: ')
   embed.setDescription(settings.join('\n'))
@@ -169,6 +207,20 @@ module.exports = {
       .setDescription('Schakel de banval uit')
     )
     .addSubcommand(subcommand => subcommand
+      .setName('set_admin_log_channel')
+      .setDescription('Zet in welk kanaal admin acties (zoals bans door de banval) gelogd worden')
+      .addChannelOption(option => option
+        .setName('channel')
+        .setDescription('Het tekstkanaal voor admin logs')
+        .addChannelTypes(ChannelType.GuildText)
+        .setRequired(true)
+      )
+    )
+    .addSubcommand(subcommand => subcommand
+      .setName('clear_admin_log_channel')
+      .setDescription('Schakel de admin logs uit')
+    )
+    .addSubcommand(subcommand => subcommand
       .setName('show')
       .setDescription('Toon alle custom settings')
     ),
@@ -198,6 +250,12 @@ module.exports = {
         break
       case 'clear_ban_trap':
         await clearBanTrap(interaction)
+        break
+      case 'set_admin_log_channel':
+        await setAdminLogChannel(interaction)
+        break
+      case 'clear_admin_log_channel':
+        await clearAdminLogChannel(interaction)
         break
       case 'show':
         await showSettings(interaction)
