@@ -59,10 +59,21 @@ async function onBanTrapMessageAsync (message) {
 
   const deleteHistoryHours = getDeleteHistoryHours(guildData)
 
-  await member.ban({
-    deleteMessageSeconds: deleteHistoryHours * 60 * 60,
-    reason: `Posted in configured ban trap channel ${message.channelId}`
-  })
+  try {
+    await member.ban({
+      deleteMessageSeconds: deleteHistoryHours * 60 * 60,
+      reason: `Posted in configured ban trap channel ${message.channelId}`
+    })
+  } catch (error) {
+    log.warn(`Could not ban member ${member.id} after posting in ban trap channel ${message.channelId}: ${error}`)
+    await logAdminEvent(message.guild, {
+      title: 'Banval: ban mislukt',
+      description: 'Discord kon de ban niet uitvoeren.',
+      level: 'warning',
+      fields
+    })
+    return
+  }
 
   log.info(`Banned member ${member.id} after posting in ban trap channel ${message.channelId}`)
   await logAdminEvent(message.guild, {
